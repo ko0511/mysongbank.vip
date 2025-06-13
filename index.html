@@ -344,7 +344,7 @@
                     let displaySongCount = songCount;
                     
                     // Check if songCount contains "（無限）" and replace with infinity symbol
-                    if (typeof songCount === 'string' && songCount.includes('（無限）')) {
+                    if (typeof songCount === 'string' && songCount.includes('10000')) {
                         displaySongCount = '∞';
                     }
                     
@@ -354,7 +354,7 @@
                         songCount: displaySongCount, // Display value (with ∞ if needed)
                         originalSongCount: songCount, // Original value from sheet
                         sortValue: typeof songCount === 'number' ? songCount : 
-                                  (songCount === '∞' || songCount.includes('（無限）') ? Infinity : 0)
+                                  (songCount === '∞' || songCount.includes('10000') ? Infinity : 0)
                     };
                     
                     allRecords.push(record);
