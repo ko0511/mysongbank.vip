@@ -1,5 +1,3 @@
-
-
 <!DOCTYPE html>
 <html lang="zh-TW">
 <head>
@@ -364,7 +362,7 @@
             }
         }
 
-        // Fetch data from Google Sheets
+        // Fetch data from Google Sheets (gviz/tq endpoint)
         async function fetchData() {
             try {
                 // Show loading state
@@ -377,15 +375,18 @@
                 // Add cache-busting parameter to prevent caching
                 const cacheBuster = new Date().getTime();
                 
-                // Fetch the main data
+                // Fetch the main data using gviz/tq
                 const mainDataUrl = `https://docs.google.com/spreadsheets/d/${spreadsheetId}/gviz/tq?tqx=out:json&gid=${sheetId}&_=${cacheBuster}`;
                 const mainResponse = await fetch(mainDataUrl);
                 const mainText = await mainResponse.text();
-                const mainData = JSON.parse(mainText.substring(47).slice(0, -2));
+                
+                // Parse the JSON response, stripping the wrapper
+                const jsonString = mainText.substring(mainText.indexOf('{'), mainText.lastIndexOf('}') + 1);
+                const mainData = JSON.parse(jsonString);
                 
                 // Store raw data for debugging
                 rawData = mainData;
-                console.log("Raw data:", rawData);
+                console.log("Raw data from gviz/tq:", rawData);
                 
                 // Process records data
                 processMainData(mainData);
@@ -406,46 +407,34 @@
                 handleResize();
             } catch (error) {
                 console.error('Error fetching data:', error);
-                alert('資料載入失敗，請稍後再試。');
+                alert('資料載入失敗，請檢查試算表連結或權限。');
                 document.getElementById('lastUpdate').textContent = "載入失敗";
             }
         }
 
-        // Process the main data from the spreadsheet
+        // Process the main data from the spreadsheet (存歌區)
         function processMainData(data) {
             allRecords = [];
             
-            // Skip header row
-            for (let i = 1; i < data.table.rows.length; i++) {
+            // Skip header row (data.table.rows[0])
+            for (let i = 0; i < data.table.rows.length; i++) {
                 const row = data.table.rows[i];
-                if (row.c && row.c[0] && row.c[1]) {
-                    // Get the name and song count
-                    const name = row.c[0].v;
-                    let songCount = row.c[1].v;
+                // Ensure row.c exists and has enough columns for '名字' (index 0) and '存歌' (index 1)
+                if (row.c && row.c[0] && row.c[1] && row.c[0].v !== null && row.c[1].v !== null) {
+                    const name = row.c[0].v; // Column A: 名字
+                    let songCount = row.c[1].v; // Column B: 存歌
+                    
                     let displaySongCount = songCount;
-                    
-                    // Check if songCount contains "（無限）" and replace with infinity symbol
-                    if (typeof songCount === 'string' && songCount.includes('（無限）')) {
-                        displaySongCount = '∞';
-                    }
-                    
-                    // Try to convert songCount to a number
                     let numericSongCount = parseFloat(songCount);
                     
-                    // If conversion fails or results in NaN, use 0
-                    if (isNaN(numericSongCount)) {
-                        // If it contains "（無限）", set to Infinity for sorting
-                        if (typeof songCount === 'string' && songCount.includes('（無限）')) {
-                            numericSongCount = Infinity;
-                        } else {
-                            numericSongCount = 0;
-                        }
+                    // Handle "無限" or 10000 as infinity
+                    if (songCount === 10000 || (typeof songCount === 'string' && songCount.includes('（無限）'))) {
+                        displaySongCount = '∞';
+                        numericSongCount = Infinity;
+                    } else if (isNaN(numericSongCount)) {
+                        numericSongCount = 0; // Default to 0 if not a valid number
                     }
                     
-                    // Debug the value
-                    console.log(`Row ${i}, Name: ${name}, Count: ${songCount}, Display: ${displaySongCount}, Numeric: ${numericSongCount}`);
-                    
-                    // Create record with both original and numeric values
                     const record = {
                         name: name,
                         songCount: displaySongCount, // Display value (with ∞ if needed)
@@ -454,7 +443,6 @@
                         index: i // Keep original index for stable sorting
                     };
                     
-                    console.log("Created record:", record);
                     allRecords.push(record);
                 }
             }
@@ -476,16 +464,12 @@
         function extractPersonColorsDirectly(data) {
             personColors = {}; // Reset person colors
             
-            // Directly look for person and color data in each row
-            // We'll check columns H (7) and K (10) based on your information
-            for (let i = 1; i < data.table.rows.length; i++) {
+            for (let i = 0; i < data.table.rows.length; i++) {
                 const row = data.table.rows[i];
-                if (!row.c) continue;
-                
-                // Check if we have data in both columns
-                if (row.c.length > 10 && row.c[7] && row.c[10]) {
-                    const person = row.c[7].v;
-                    const color = row.c[10].v;
+                // Check if we have data in columns H (7) and K (10)
+                if (row.c && row.c[7] && row.c[10] && row.c[7].v !== null && row.c[10].v !== null) {
+                    const person = row.c[7].v; // Column H: 冠歌人
+                    const color = row.c[10].v; // Column K: 顏色
                     
                     // Store the color for this person if not already stored
                     if (person && color && !personColors[person]) {
@@ -502,41 +486,27 @@
             }
         }
 
-        // Process the top songs data
+        // Process the top songs data (冠歌區)
         function processTopSongsData(data) {
             topSongs = [];
             
-            // Directly use known column indices based on your information
-            const personColIndex = 7;  // Column H
-            const songColIndex = 8;    // Column I
-            const multiplierColIndex = 9; // Column J
-            
-            // Extract the top songs
-            for (let i = 1; i < data.table.rows.length; i++) {
+            for (let i = 0; i < data.table.rows.length; i++) {
                 const row = data.table.rows[i];
-                if (!row.c) continue;
-                
-                // Skip rows without complete data
-                if (row.c.length <= Math.max(personColIndex, songColIndex, multiplierColIndex)) {
-                    continue;
-                }
-                
-                if (!row.c[personColIndex] || !row.c[songColIndex] || !row.c[multiplierColIndex]) {
-                    continue;
-                }
-                
-                const person = row.c[personColIndex].v;
-                const song = row.c[songColIndex].v;
-                const multiplier = row.c[multiplierColIndex].v;
-                
-                // Only add if we have all required data
-                if (person && song && multiplier) {
-                    const topSong = {
-                        person: person,
-                        song: song,
-                        multiplier: multiplier
-                    };
-                    topSongs.push(topSong);
+                // Check if we have data in columns H (7), I (8), J (9)
+                if (row.c && row.c[7] && row.c[8] && row.c[9] && row.c[7].v !== null && row.c[8].v !== null && row.c[9].v !== null) {
+                    const person = row.c[7].v; // Column H: 冠歌人
+                    const song = row.c[8].v; // Column I: 冠歌歌曲
+                    const multiplier = row.c[9].v; // Column J: 倍數
+                    
+                    // Only add if we have all required data
+                    if (person && song && multiplier) {
+                        const topSong = {
+                            person: person,
+                            song: song,
+                            multiplier: multiplier
+                        };
+                        topSongs.push(topSong);
+                    }
                 }
             }
             
@@ -697,7 +667,12 @@
                 }
                 
                 // Add person header with crown icon
-                const headerBgClass = personColor.hex ? `style="background-color: ${personColor.hex};"` : `class="${personColor.primary}"`;
+                let headerBgClass = '';
+                if (personColor.hex) {
+                    headerBgClass = `style="background-color: ${personColor.hex};"`;
+                } else {
+                    headerBgClass = `class="${personColor.primary}"`;
+                }
                 
                 personCard.innerHTML = `
                     <div ${headerBgClass} class="p-2 relative">
@@ -873,5 +848,5 @@
             allRecords = originalRecords;
         }
     </script>
-<script>(function(){function c(){var b=a.contentDocument||a.contentWindow.document;if(b){var d=b.createElement('script');d.innerHTML="window.__CF$cv$params={r:'94f0a54e03248469',t:'MTc0OTgwNzgyOC4wMDAwMDA='};var a=document.createElement('script');a.nonce='';a.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js';document.getElementsByTagName('head')[0].appendChild(a);";b.getElementsByTagName('head')[0].appendChild(d)}}if(document.body){var a=document.createElement('iframe');a.height=1;a.width=1;a.style.position='absolute';a.style.top=0;a.style.left=0;a.style.border='none';a.style.visibility='hidden';document.body.appendChild(a);if('loading'!==document.readyState)c();else if(window.addEventListener)document.addEventListener('DOMContentLoaded',c);else{var e=document.onreadystatechange||function(){};document.onreadystatechange=function(b){e(b);'loading'!==document.readyState&&(document.onreadystatechange=e,c())}}}})();</script></body>
+</body>
 </html>
