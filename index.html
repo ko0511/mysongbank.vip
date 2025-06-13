@@ -9,7 +9,6 @@
     <style>
         body {
             font-family: 'Noto Sans TC', sans-serif;
-            /* Changed body background to a more noticeable light blue-purple */
             background-color: #e0eaff; /* bg-bluepurple-100 */
         }
         .shimmer {
@@ -34,17 +33,6 @@
             transform: translateY(-3px);
             box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
         }
-        /* Removed song-count-badge styles as it's being removed from HTML */
-        /* .song-count-badge {
-            position: absolute;
-            top: 8px;
-            right: 8px;
-            padding: 1px 6px;
-            border-radius: 6px;
-            font-size: 0.7rem;
-            font-weight: bold;
-            background: rgba(255, 255, 255, 0.9);
-        } */
         .card-content {
             flex-grow: 1;
             display: flex;
@@ -58,13 +46,13 @@
         
         /* 調整圓角為更方一點 */
         .rounded-custom {
-            border-radius: 6px;
+            border-radius: 4px; /* Changed from 6px */
         }
         .rounded-custom-sm {
-            border-radius: 4px;
+            border-radius: 2px; /* Changed from 4px */
         }
         .rounded-custom-lg {
-            border-radius: 8px;
+            border-radius: 6px; /* Changed from 8px */
         }
         
         /* 自定義藍紫色調 */
@@ -155,6 +143,12 @@
         .crown-section-mobile.expanded .crown-section-gradient {
             display: none;
         }
+
+        /* Custom font size for extra extra small */
+        .text-xxs {
+            font-size: 0.65rem;
+            line-height: 1rem;
+        }
     </style>
     <script>
         tailwind.config = {
@@ -185,33 +179,15 @@
         <!-- Header -->
         <header class="bg-gradient-to-r from-blue-200 to-bluepurple-300 shadow-md">
             <div class="container mx-auto px-4 py-4">
-                <div class="flex flex-col md:flex-row justify-between items-center">
-                    <div>
-                        <h1 class="text-2xl font-bold mb-1 md:mb-0 text-bluepurple-800">存歌&冠歌</h1>
-                        <p class="text-xs text-bluepurple-600">
-                            最後更新時間：<span id="lastUpdate" class="font-medium">--</span>
-                        </p>
-                    </div>
-                    <div class="flex items-center space-x-2 mt-3 md:mt-0 w-full md:w-auto">
-                        <div class="relative flex-grow md:flex-grow-0">
-                            <input id="searchInput" type="text" placeholder="搜尋..." class="px-3 py-1.5 rounded-custom text-gray-800 focus:outline-none focus:ring-2 focus:ring-bluepurple-300 w-full md:w-48 border border-bluepurple-100 text-sm">
-                            <svg class="w-4 h-4 absolute right-3 top-2 text-bluepurple-400" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path>
-                            </svg>
-                        </div>
-                        <button id="refreshBtn" class="bg-white text-bluepurple-700 px-3 py-1.5 rounded-custom text-sm font-medium hover:bg-bluepurple-50 transition-colors flex items-center border border-bluepurple-200 shadow-sm whitespace-nowrap">
-                            <svg class="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"></path>
-                            </svg>
-                            重新整理
-                        </button>
-                    </div>
+                <!-- Centered title -->
+                <div class="flex justify-center items-center">
+                    <h1 class="text-2xl font-bold text-bluepurple-800">存歌&冠歌</h1>
                 </div>
             </div>
         </header>
 
         <!-- Top Songs Section -->
-        <section class="py-4 bg-bluepurple-50 shadow-sm"> <!-- Changed from bg-white -->
+        <section class="py-4 bg-bluepurple-50 shadow-sm">
             <div class="container mx-auto px-4">
                 <h2 class="text-xl font-bold mb-4 text-bluepurple-800 flex items-center">
                     <svg class="w-5 h-5 mr-2 text-yellow-500" fill="currentColor" viewBox="0 0 20 20" xmlns="http://www.w3.org/2000/svg">
@@ -249,9 +225,9 @@
         <!-- Main Content -->
         <section class="py-4">
             <div class="container mx-auto px-4">
-                <div class="bg-bluepurple-50 rounded-custom-lg shadow-md overflow-hidden border border-bluepurple-100"> <!-- Changed from bg-white -->
-                    <div class="p-4 border-b border-bluepurple-100">
-                        <div>
+                <div class="bg-bluepurple-50 rounded-custom-lg shadow-md overflow-hidden border border-bluepurple-100">
+                    <div class="p-4 border-b border-bluepurple-100 flex flex-col md:flex-row md:items-center md:justify-between relative">
+                        <div class="mb-4 md:mb-0">
                             <h2 class="text-xl font-bold text-bluepurple-800 flex items-center">
                                 <svg class="w-5 h-5 mr-2 text-bluepurple-500" fill="currentColor" viewBox="0 0 20 20" xmlns="http://www.w3.org/2000/svg">
                                     <path fill-rule="evenodd" d="M10 2a4 4 0 00-4 4v1H5a1 1 0 00-.994.89l-1 9A1 1 0 004 18h12a1 1 0 00.994-1.11l-1-9A1 1 0 0015 7h-1V6a4 4 0 00-4-4zm2 5V6a2 2 0 10-4 0v1h4zm-6 3a1 1 0 112 0 1 1 0 01-2 0zm7-1a1 1 0 100 2 1 1 0 000-2z" clip-rule="evenodd"></path>
@@ -259,6 +235,24 @@
                                 存歌區
                             </h2>
                             <p class="text-sm text-bluepurple-600 mt-1">依照存歌數量由多到少排列</p>
+                        </div>
+                        <div class="flex flex-col md:flex-row md:items-center md:space-x-2 w-full md:w-auto">
+                            <div class="relative flex-grow md:flex-grow-0 mb-2 md:mb-0">
+                                <input id="searchInput" type="text" placeholder="搜尋..." class="px-3 py-1.5 rounded-custom text-gray-800 focus:outline-none focus:ring-2 focus:ring-bluepurple-300 w-full md:w-48 border border-bluepurple-100 text-sm">
+                                <svg class="w-4 h-4 absolute right-3 top-2 text-bluepurple-400" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path>
+                                </svg>
+                            </div>
+                            <button id="refreshBtn" class="bg-white text-bluepurple-700 px-3 py-1.5 rounded-custom text-sm font-medium hover:bg-bluepurple-50 transition-colors flex items-center border border-bluepurple-200 shadow-sm whitespace-nowrap mb-2 md:mb-0">
+                                <svg class="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"></path>
+                                </svg>
+                                重新整理
+                            </button>
+                            <!-- Last update time moved to top-right of this section -->
+                            <p class="text-xxs text-bluepurple-600 absolute -top-6 right-0 md:relative md:top-0 md:right-0 md:ml-auto md:text-xs md:mt-0">
+                                最後更新時間：<span id="lastUpdate" class="font-medium">--</span>
+                            </p>
                         </div>
                     </div>
                     
@@ -652,7 +646,6 @@
                 
                 // Create a card for this person
                 const personCard = document.createElement('div');
-                // Changed card background and border
                 personCard.className = 'bg-bluepurple-50 rounded-custom shadow-sm overflow-hidden border border-bluepurple-100 relative crown-card'; 
                 
                 // Determine text color based on background darkness
@@ -674,10 +667,6 @@
                             </svg>
                             <h3 class="font-bold text-sm ${textColorClass}">${person}</h3>
                         </div>
-                        <!-- Removed song-count-badge as per request -->
-                        <!-- <span class="song-count-badge text-gray-800 border ${personColor.border}">
-                            ${personSongs.length} 首
-                        </span> -->
                     </div>
                     <div class="card-content">
                         <ul class="songs-list p-2 space-y-1">
@@ -813,7 +802,6 @@
                 // Render remaining records in compact grid
                 remainingRecords.forEach((record) => {
                     const recordCard = document.createElement('div');
-                    // Changed compact card background
                     recordCard.className = 'bg-bluepurple-100 rounded-custom-sm border border-bluepurple-100 compact-card hover:bg-bluepurple-50 transition-colors text-center';
                     
                     recordCard.innerHTML = `
