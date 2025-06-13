@@ -298,10 +298,11 @@
 
     <script>
         // Global variables
-        let allRecords = [];
+        let allRecords = []; // Stores all records with global ranks
         let topSongs = [];
         let personColors = {}; // Store colors for each person
         let rawData = null; // Store raw data for debugging
+        let currentSearchTerm = ''; // New: Stores the current search term
 
         // Crown icon for different multipliers
         const crownIcon = `<svg class="w-4 h-4 text-yellow-500" fill="currentColor" viewBox="0 0 20 20" xmlns="http://www.w3.org/2000/svg">
@@ -312,6 +313,7 @@
         const refreshBtn = document.getElementById('refreshBtn');
         const refreshBtnText = document.getElementById('refreshBtnText');
         const loadingSpinner = document.getElementById('loadingSpinner');
+        const searchInput = document.getElementById('searchInput'); // Get search input element
 
         // Initialize the application
         document.addEventListener('DOMContentLoaded', () => {
@@ -322,7 +324,7 @@
         // Set up event listeners
         function setupEventListeners() {
             refreshBtn.addEventListener('click', fetchData);
-            document.getElementById('searchInput').addEventListener('input', handleSearch);
+            searchInput.addEventListener('input', handleSearch); // Use searchInput
             document.getElementById('expandCrownBtn').addEventListener('click', expandCrownSection);
             
             // Add resize event listener to handle card heights
@@ -390,7 +392,7 @@
                 rawData = mainData;
                 console.log("Raw data from gviz/tq:", rawData);
                 
-                // Process records data
+                // Process records data and assign global ranks
                 processMainData(mainData);
                 
                 // Extract person-color mappings directly
@@ -399,7 +401,7 @@
                 // Process top songs data
                 processTopSongsData(mainData);
                 
-                // Update UI
+                // Update UI, which will now apply the current search term if any
                 updateUI();
                 
                 // Handle card heights based on current window width
@@ -417,7 +419,7 @@
 
         // Process the main data from the spreadsheet (存歌區)
         function processMainData(data) {
-            allRecords = [];
+            let tempRecords = []; // Use a temporary array to build records
             
             // Skip header row (data.table.rows[0])
             for (let i = 0; i < data.table.rows.length; i++) {
@@ -446,12 +448,12 @@
                         index: i // Keep original index for stable sorting
                     };
                     
-                    allRecords.push(record);
+                    tempRecords.push(record);
                 }
             }
             
             // Sort records by song count (descending)
-            allRecords.sort((a, b) => {
+            tempRecords.sort((a, b) => {
                 // First compare by numeric song count
                 if (b.numericSongCount !== a.numericSongCount) {
                     return b.numericSongCount - a.numericSongCount;
@@ -459,8 +461,14 @@
                 // If counts are equal, maintain original order
                 return a.index - b.index;
             });
+
+            // Assign global rank after initial sorting of the full dataset
+            tempRecords.forEach((record, idx) => {
+                record.globalRank = idx + 1; // Store the 1-based global rank
+            });
             
-            console.log("Processed and sorted records:", allRecords);
+            allRecords = tempRecords; // Assign the fully processed records to the global variable
+            console.log("Processed and sorted records with global ranks:", allRecords);
         }
 
         // Extract person-color mappings directly from the data
@@ -602,158 +610,27 @@
             });
         }
 
-        // Update the UI with the fetched data
+        // Update the UI with the fetched data and apply search filter if needed
         function updateUI() {
-            renderTopSongs();
-            renderRecordTable();
-        }
+            let recordsToRender = [...allRecords]; // Start with a copy of all records
 
-        // Render the top songs section with new design
-        function renderTopSongs() {
-            // Render for desktop
-            const desktopContainer = document.getElementById('topSongsContainer');
-            renderTopSongsContent(desktopContainer);
-            
-            // Render for mobile
-            const mobileContainer = document.getElementById('topSongsMobileContent');
-            renderTopSongsContent(mobileContainer);
-        }
-        
-        // Render top songs content to a container
-        function renderTopSongsContent(container) {
-            container.innerHTML = '';
-            
-            if (topSongs.length === 0) {
-                container.innerHTML = '<p class="text-center text-bluepurple-500">沒有冠歌資料</p>';
-                return;
+            // Apply search filter if a search term exists
+            if (currentSearchTerm) {
+                recordsToRender = recordsToRender.filter(record =>
+                    record.name.toLowerCase().includes(currentSearchTerm)
+                );
             }
-            
-            // Group songs by person
-            const songsByPerson = {};
-            topSongs.forEach(song => {
-                if (!songsByPerson[song.person]) {
-                    songsByPerson[song.person] = [];
-                }
-                songsByPerson[song.person].push(song);
-            });
-            
-            // Sort persons by number of songs (most songs first)
-            const sortedPersons = Object.keys(songsByPerson).sort((a, b) => 
-                songsByPerson[b].length - songsByPerson[a].length
-            );
-            
-            // Create a container for all person cards
-            const personsContainer = document.createElement('div');
-            personsContainer.className = 'grid grid-cols-1 md:grid-cols-3 lg:grid-cols-4 gap-3';
-            
-            // Display each person as a card
-            sortedPersons.forEach(person => {
-                const personSongs = songsByPerson[person];
-                const personColor = personColors[person] || { primary: 'bg-pastel-bluepurple', text: 'text-gray-800', border: 'border-bluepurple-200', isDark: false };
-                
-                // Create a card for this person
-                const personCard = document.createElement('div');
-                personCard.className = 'bg-bluepurple-50 rounded-custom shadow-sm overflow-hidden border border-bluepurple-100 relative crown-card'; 
-                
-                // Determine text color based on background darkness
-                const textColorClass = personColor.isDark ? 'text-white' : 'text-gray-800';
-                
-                // Add person header with crown icon
-                let headerBgClass = '';
-                if (personColor.hex) {
-                    headerBgClass = `style="background-color: ${personColor.hex};"`;
-                } else {
-                    headerBgClass = `class="${personColor.primary}"`;
-                }
-                
-                personCard.innerHTML = `
-                    <div ${headerBgClass} class="p-2 relative">
-                        <div class="flex items-center">
-                            <!-- Crown icon -->
-                            <svg class="w-5 h-5 mr-1 text-yellow-500" fill="currentColor" viewBox="0 0 20 20" xmlns="http://www.w3.org/2000/svg">
-                                <path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z"></path>
-                            </svg>
-                            <h3 class="font-bold text-sm ${textColorClass}">${person}</h3>
-                        </div>
-                    </div>
-                    <div class="card-content">
-                        <ul class="songs-list p-2 space-y-1">
-                            ${personSongs.map(song => {
-                                // Determine background style for song list item, increased opacity
-                                let songItemBgStyle = '';
-                                let songItemBgClass = '';
-                                if (personColor.hex) {
-                                    songItemBgStyle = `background-color: ${personColor.hex}33;`; // 20% opacity
-                                } else {
-                                    songItemBgClass = `${personColor.primary.replace('bg-', 'bg-opacity-20 bg-')}`; // 20% opacity
-                                }
 
-                                return `
-                                <li style="${songItemBgStyle}" class="flex items-center justify-between p-1.5 rounded-custom-sm shadow-sm border ${personColor.border} ${songItemBgClass}">
-                                    <span class="font-medium text-gray-800 truncate mr-2 text-xs">${song.song}</span>
-                                    <span class="flex items-center text-gray-800 text-xs font-bold">
-                                        <!-- Crown icon -->
-                                        <svg class="w-4 h-4 text-yellow-500" fill="currentColor" viewBox="0 0 20 20" xmlns="http://www.w3.org/2000/svg">
-                                            <path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z"></path>
-                                        </svg>
-                                        <span class="ml-0.5">${song.multiplier}倍</span>
-                                    </span>
-                                </li>`;
-                            }).join('')}
-                        </ul>
-                    </div>
-                `;
-                
-                personsContainer.appendChild(personCard);
-            });
-            
-            container.appendChild(personsContainer);
-            
-            // Make all cards the same height on desktop
-            if (window.innerWidth >= 768) { // md breakpoint
-                setTimeout(() => {
-                    equalizeCardHeights();
-                }, 100);
-            }
-        }
-
-        // Make all crown cards the same height
-        function equalizeCardHeights() {
-            const cards = document.querySelectorAll('.crown-card');
-            if (cards.length === 0) return;
-            
-            // Reset heights first
-            cards.forEach(card => {
-                card.style.height = 'auto';
-            });
-            
-            // Find the tallest card
-            let maxHeight = 0;
-            cards.forEach(card => {
-                maxHeight = Math.max(maxHeight, card.offsetHeight);
-            });
-            
-            // Set all cards to the tallest height
-            cards.forEach(card => {
-                card.style.height = `${maxHeight}px`;
-            });
-        }
-        
-        // Reset card heights to auto
-        function resetCardHeights() {
-            const cards = document.querySelectorAll('.crown-card');
-            cards.forEach(card => {
-                card.style.height = 'auto';
-            });
+            renderTopSongs(); // This part doesn't depend on search, so it's fine
+            renderRecordTable(recordsToRender); // Pass the filtered/unfiltered list to render
         }
 
         // Render the record table
-        function renderRecordTable() {
-            // Render top 10 records in the table
+        function renderRecordTable(recordsToRender) { // Accept recordsToRender as argument
             const top10RecordsTableBody = document.getElementById('top10RecordsTableBody');
             top10RecordsTableBody.innerHTML = '';
             
-            if (allRecords.length === 0) {
+            if (recordsToRender.length === 0) { // Use recordsToRender here
                 const emptyRow = document.createElement('tr');
                 emptyRow.innerHTML = `
                     <td colspan="3" class="px-4 py-2 text-center text-bluepurple-500">
@@ -762,35 +639,32 @@
                 `;
                 top10RecordsTableBody.appendChild(emptyRow);
             } else {
-                // Get top 10 records (or all if less than 10)
-                const top10Records = allRecords.slice(0, 10);
+                const top10Records = recordsToRender.slice(0, 10); // Slice from recordsToRender
                 
-                // Render top 10 records
-                top10Records.forEach((record, index) => {
+                top10Records.forEach((record) => { // No need for index here, use record.globalRank
                     const row = document.createElement('tr');
                     row.className = 'record-row hover:bg-bluepurple-50';
                     
-                    // Determine rank style based on position
                     let rankStyle = '';
-                    if (index === 0) {
+                    // Use record.globalRank for styling logic based on its global rank
+                    if (record.globalRank === 1) {
                         rankStyle = 'bg-yellow-100 text-yellow-800 font-bold';
-                    } else if (index === 1) {
+                    } else if (record.globalRank === 2) {
                         rankStyle = 'bg-gray-100 text-gray-700 font-bold';
-                    } else if (index === 2) {
+                    } else if (record.globalRank === 3) {
                         rankStyle = 'bg-amber-50 text-amber-700 font-bold';
                     } else {
-                        // Adjusted default rank badge color for better appearance
                         rankStyle = 'bg-bluepurple-100 text-bluepurple-700'; 
                     }
                     
                     row.innerHTML = `
                         <td class="px-4 py-2 whitespace-nowrap">
                             <div class="inline-block rounded-full w-6 h-6 flex items-center justify-center ${rankStyle} text-xs">
-                                ${index + 1}
+                                ${record.globalRank}
                             </div>
                         </td>
                         <td class="px-4 py-2 whitespace-nowrap">
-                            <div class="${index < 3 ? 'font-medium' : ''} text-bluepurple-900 text-sm">${record.name}</div>
+                            <div class="${record.globalRank <= 3 ? 'font-medium' : ''} text-bluepurple-900 text-sm">${record.name}</div>
                         </td>
                         <td class="px-4 py-2 whitespace-nowrap">
                             <div class="text-bluepurple-700 text-sm">${record.songCount}</div>
@@ -800,17 +674,14 @@
                 });
             }
             
-            // Render remaining records in compact grid
             const remainingRecordsContainer = document.getElementById('remainingRecordsContainer');
             remainingRecordsContainer.innerHTML = '';
             
-            if (allRecords.length <= 10) {
+            if (recordsToRender.length <= 10) { // Use recordsToRender here
                 remainingRecordsContainer.innerHTML = '<p class="text-center text-bluepurple-500 col-span-full">沒有更多資料</p>';
             } else {
-                // Get records beyond top 10
-                const remainingRecords = allRecords.slice(10);
+                const remainingRecords = recordsToRender.slice(10); // Slice from recordsToRender
                 
-                // Render remaining records in compact grid
                 remainingRecords.forEach((record) => {
                     const recordCard = document.createElement('div');
                     recordCard.className = 'bg-bluepurple-100 rounded-custom-sm border border-bluepurple-100 compact-card hover:bg-bluepurple-50 transition-colors text-center';
@@ -827,32 +698,8 @@
 
         // Handle search input
         function handleSearch(e) {
-            const searchTerm = e.target.value.toLowerCase().trim();
-            
-            // Store the original allRecords before filtering
-            const originalRecords = [...allRecords];
-
-            if (searchTerm === '') {
-                // If search term is empty, reset to original data
-                allRecords = originalRecords; // Ensure allRecords is the full, original list
-                updateUI();
-                return;
-            }
-            
-            // Filter records based on search term
-            const filteredRecords = originalRecords.filter(record => // Filter from the original list
-                record.name.toLowerCase().includes(searchTerm)
-            );
-            
-            // Temporarily set allRecords to filtered results for rendering
-            allRecords = filteredRecords;
-            
-            // Update UI with filtered results. The ranks displayed will be based on this filtered set.
-            updateUI();
-            
-            // Restore original data immediately after rendering, so subsequent operations
-            // (like another search or refresh) work on the full dataset.
-            allRecords = originalRecords;
+            currentSearchTerm = e.target.value.toLowerCase().trim(); // Update global search term
+            updateUI(); // Re-render UI, which will now apply the filter
         }
     </script>
 </body>
