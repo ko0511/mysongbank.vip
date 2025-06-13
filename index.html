@@ -1,3 +1,5 @@
+
+
 <!DOCTYPE html>
 <html lang="zh-TW">
 <head>
@@ -128,6 +130,31 @@
             margin-top: 0.25rem;
             display: inline-block;
         }
+        
+        /* 冠歌區折疊效果 */
+        .crown-section-mobile {
+            position: relative;
+            max-height: 300px;
+            overflow: hidden;
+        }
+        .crown-section-mobile.expanded {
+            max-height: none;
+        }
+        .crown-section-gradient {
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            height: 80px;
+            background: linear-gradient(to bottom, rgba(255,255,255,0) 0%, rgba(255,255,255,0.9) 70%, rgba(255,255,255,1) 100%);
+            display: flex;
+            align-items: flex-end;
+            justify-content: center;
+            padding-bottom: 10px;
+        }
+        .crown-section-mobile.expanded .crown-section-gradient {
+            display: none;
+        }
     </style>
     <script>
         tailwind.config = {
@@ -165,19 +192,19 @@
                             最後更新時間：<span id="lastUpdate" class="font-medium">--</span>
                         </p>
                     </div>
-                    <div class="flex items-center space-x-2 mt-3 md:mt-0">
-                        <button id="refreshBtn" class="bg-white text-bluepurple-700 px-3 py-1.5 rounded-custom text-sm font-medium hover:bg-bluepurple-50 transition-colors flex items-center border border-bluepurple-200 shadow-sm">
+                    <div class="flex items-center space-x-2 mt-3 md:mt-0 w-full md:w-auto">
+                        <div class="relative flex-grow md:flex-grow-0">
+                            <input id="searchInput" type="text" placeholder="搜尋..." class="px-3 py-1.5 rounded-custom text-gray-800 focus:outline-none focus:ring-2 focus:ring-bluepurple-300 w-full md:w-48 border border-bluepurple-100 text-sm">
+                            <svg class="w-4 h-4 absolute right-3 top-2 text-bluepurple-400" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path>
+                            </svg>
+                        </div>
+                        <button id="refreshBtn" class="bg-white text-bluepurple-700 px-3 py-1.5 rounded-custom text-sm font-medium hover:bg-bluepurple-50 transition-colors flex items-center border border-bluepurple-200 shadow-sm whitespace-nowrap">
                             <svg class="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"></path>
                             </svg>
                             重新整理
                         </button>
-                        <div class="relative">
-                            <input id="searchInput" type="text" placeholder="搜尋..." class="px-3 py-1.5 rounded-custom text-gray-800 focus:outline-none focus:ring-2 focus:ring-bluepurple-300 w-32 md:w-48 border border-bluepurple-100 text-sm">
-                            <svg class="w-4 h-4 absolute right-3 top-2 text-bluepurple-400" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path>
-                            </svg>
-                        </div>
                     </div>
                 </div>
             </div>
@@ -192,10 +219,29 @@
                     </svg>
                     冠歌區
                 </h2>
-                <div id="topSongsContainer" class="space-y-4">
+                
+                <!-- 桌面版顯示 -->
+                <div id="topSongsContainer" class="space-y-4 hidden md:block">
                     <!-- Loading placeholders -->
                     <div class="shimmer h-32 rounded-custom-lg"></div>
                     <div class="shimmer h-32 rounded-custom-lg"></div>
+                </div>
+                
+                <!-- 手機版顯示 (可折疊) -->
+                <div id="topSongsMobileContainer" class="crown-section-mobile md:hidden">
+                    <div id="topSongsMobileContent" class="space-y-4">
+                        <!-- Loading placeholders -->
+                        <div class="shimmer h-32 rounded-custom-lg"></div>
+                        <div class="shimmer h-32 rounded-custom-lg"></div>
+                    </div>
+                    <div class="crown-section-gradient">
+                        <button id="expandCrownBtn" class="bg-white text-bluepurple-700 px-3 py-1.5 rounded-full text-sm font-medium hover:bg-bluepurple-50 transition-colors border border-bluepurple-200 shadow-sm flex items-center">
+                            <svg class="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path>
+                            </svg>
+                            顯示更多
+                        </button>
+                    </div>
                 </div>
             </div>
         </section>
@@ -205,31 +251,44 @@
             <div class="container mx-auto px-4">
                 <div class="bg-white rounded-custom-lg shadow-md overflow-hidden border border-bluepurple-100">
                     <div class="p-4 border-b border-bluepurple-100">
-                        <h2 class="text-xl font-bold text-bluepurple-800 flex items-center">
-                            <svg class="w-5 h-5 mr-2 text-bluepurple-500" fill="currentColor" viewBox="0 0 20 20" xmlns="http://www.w3.org/2000/svg">
-                                <path fill-rule="evenodd" d="M10 2a4 4 0 00-4 4v1H5a1 1 0 00-.994.89l-1 9A1 1 0 004 18h12a1 1 0 00.994-1.11l-1-9A1 1 0 0015 7h-1V6a4 4 0 00-4-4zm2 5V6a2 2 0 10-4 0v1h4zm-6 3a1 1 0 112 0 1 1 0 01-2 0zm7-1a1 1 0 100 2 1 1 0 000-2z" clip-rule="evenodd"></path>
-                            </svg>
-                            存歌區
-                        </h2>
+                        <div>
+                            <h2 class="text-xl font-bold text-bluepurple-800 flex items-center">
+                                <svg class="w-5 h-5 mr-2 text-bluepurple-500" fill="currentColor" viewBox="0 0 20 20" xmlns="http://www.w3.org/2000/svg">
+                                    <path fill-rule="evenodd" d="M10 2a4 4 0 00-4 4v1H5a1 1 0 00-.994.89l-1 9A1 1 0 004 18h12a1 1 0 00.994-1.11l-1-9A1 1 0 0015 7h-1V6a4 4 0 00-4-4zm2 5V6a2 2 0 10-4 0v1h4zm-6 3a1 1 0 112 0 1 1 0 01-2 0zm7-1a1 1 0 100 2 1 1 0 000-2z" clip-rule="evenodd"></path>
+                                </svg>
+                                存歌區
+                            </h2>
+                            <p class="text-sm text-bluepurple-600 mt-1">依照存歌數量由多到少排列</p>
+                        </div>
                     </div>
                     
-                    <!-- Records Table -->
+                    <!-- Top 10 Records Table -->
                     <div class="overflow-x-auto">
                         <table class="min-w-full divide-y divide-bluepurple-100">
                             <thead class="bg-bluepurple-50">
                                 <tr>
+                                    <th scope="col" class="px-4 py-2 text-left text-xs font-medium text-bluepurple-700 uppercase tracking-wider">排序</th>
                                     <th scope="col" class="px-4 py-2 text-left text-xs font-medium text-bluepurple-700 uppercase tracking-wider">名稱</th>
                                     <th scope="col" class="px-4 py-2 text-left text-xs font-medium text-bluepurple-700 uppercase tracking-wider">存歌數量</th>
-                                    <th scope="col" class="px-4 py-2 text-left text-xs font-medium text-bluepurple-700 uppercase tracking-wider">排序</th>
                                 </tr>
                             </thead>
-                            <tbody id="recordsTableBody" class="bg-white divide-y divide-bluepurple-100">
+                            <tbody id="top10RecordsTableBody" class="bg-white divide-y divide-bluepurple-100">
                                 <!-- Loading placeholders -->
                                 <tr><td colspan="3" class="px-4 py-2"><div class="shimmer h-5 w-full rounded-custom-sm"></div></td></tr>
                                 <tr><td colspan="3" class="px-4 py-2"><div class="shimmer h-5 w-full rounded-custom-sm"></div></td></tr>
                                 <tr><td colspan="3" class="px-4 py-2"><div class="shimmer h-5 w-full rounded-custom-sm"></div></td></tr>
                             </tbody>
                         </table>
+                    </div>
+                    
+                    <!-- Compact Grid View for remaining records -->
+                    <div class="p-4 border-t border-bluepurple-100">
+                        <div id="remainingRecordsContainer" class="compact-grid">
+                            <!-- Will be filled with records beyond top 10 -->
+                            <div class="shimmer h-10 w-full rounded-custom-sm"></div>
+                            <div class="shimmer h-10 w-full rounded-custom-sm"></div>
+                            <div class="shimmer h-10 w-full rounded-custom-sm"></div>
+                        </div>
                     </div>
                 </div>
             </div>
@@ -266,9 +325,33 @@
         function setupEventListeners() {
             document.getElementById('refreshBtn').addEventListener('click', fetchData);
             document.getElementById('searchInput').addEventListener('input', handleSearch);
+            document.getElementById('expandCrownBtn').addEventListener('click', expandCrownSection);
             
             // Add resize event listener to handle card heights
             window.addEventListener('resize', handleResize);
+        }
+        
+        // Expand crown section on mobile
+        function expandCrownSection() {
+            const container = document.getElementById('topSongsMobileContainer');
+            container.classList.toggle('expanded');
+            
+            const button = document.getElementById('expandCrownBtn');
+            if (container.classList.contains('expanded')) {
+                button.innerHTML = `
+                    <svg class="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 15l7-7 7 7"></path>
+                    </svg>
+                    收起
+                `;
+            } else {
+                button.innerHTML = `
+                    <svg class="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path>
+                    </svg>
+                    顯示更多
+                `;
+            }
         }
         
         // Handle resize event for card heights
@@ -281,88 +364,49 @@
             }
         }
 
-        // Fetch data from Google Sheets (or opensheet.xyz)
+        // Fetch data from Google Sheets
         async function fetchData() {
             try {
+                // Show loading state
                 document.getElementById('lastUpdate').textContent = "載入中...";
-
-                // 請替換為您的 Google 試算表 ID 和工作表名稱
-                const spreadsheetId = '1z-kl4dUioRrhJaq82O283991VPtg2PfXqx4eN5fQ9-8'; // <-- 請替換為您的試算表 ID
-                const sheetName = '存歌&冠歌'; // <-- 請替換為您的工作表名稱
-
-                // opensheet.xyz 的 API 網址
-                const apiUrl = `https://opensheet.xyz/${spreadsheetId}/${sheetName}`;
-                console.log("Fetching data from URL:", apiUrl); // Add debug log for URL
                 
-                const response = await fetch(apiUrl);
-                console.log("Response status:", response.status); // Add debug log for status
-                if (!response.ok) {
-                    throw new Error(`HTTP error! status: ${response.status}`);
-                }
-                const data = await response.json(); // opensheet.xyz 直接返回 JSON 陣列
-
-                // opensheet.xyz 返回的是一個 JSON 陣列，每個物件代表一行
-                // 我們需要將其轉換為原始腳本所期望的 Google Visualization API 格式
-                const transformedData = {
-                    "table": {
-                        "cols": [
-                            {"id":"名稱","label":"名稱","type":"string"},
-                            {"id":"存歌數量","label":"存歌數量","type":"number"},
-                            {"id":"冠歌倍率","label":"冠歌倍率","type":"number"},
-                            {"id":"教師姓名","label":"教師姓名","type":"string"},
-                            {"id":"教室","label":"教室","type":"string"},
-                            {"id":"日期","label":"日期","type":"string"},
-                            {"id":"時間","label":"時間","type":"string"},
-                            {"id":"姓名","label":"姓名","type":"string"},
-                            {"id":"冠歌","label":"冠歌","type":"string"},
-                            {"id":"倍率","label":"倍率","type":"number"},
-                            {"id":"顏色","label":"顏色","type":"string"},
-                            {"id":"聯絡方式","label":"聯絡方式","type":"string"},
-                            {"id":"寫入時間","label":"寫入時間","type":"string"},
-                            {"id":"報名狀態","label":"報名狀態","type":"string"}
-                        ],
-                        "rows": []
-                    }
-                };
-
-                if (data.length > 0) {
-                    data.forEach(rowData => {
-                        const c = [];
-                        // 按照您在 transformedData.table.cols 中定義的順序來提取資料
-                        transformedData.table.cols.forEach(colDef => {
-                            // opensheet.xyz 會將欄位名稱自動轉換為小寫、移除空格等
-                            // 請根據 opensheet.xyz 實際返回的 JSON 鍵名來調整這裏的訪問方式
-                            // 例如，如果試算表欄位是 "存歌數量"，opensheet 可能會返回 "存歌數量" 或 "存歌_數量"
-                            // 建議您先訪問 opensheet.xyz 的 URL，查看實際的 JSON 鍵名
-                            let value = rowData[colDef.id] !== undefined ? rowData[colDef.id] : null; 
-                            
-                            // 這裡特別處理 "存歌數量" 欄位，以符合原始腳本的 `processMainData` 邏輯
-                            if (colDef.id === '存歌數量') {
-                                // 檢查是否是 10000，並轉為字串以讓後面的 processMainData 統一處理
-                                if (value === 10000 || (typeof value === 'string' && value.trim() === '10000')) {
-                                    value = '10000'; // 統一為字串 '10000'，讓 processMainData 處理
-                                }
-                            }
-                            c.push({"v": value});
-                        });
-                        transformedData.table.rows.push({"c": c});
-                    });
-                }
-
-                rawData = transformedData; // 儲存轉換後的資料以供除錯
-                console.log("Transformed data from opensheet.xyz:", rawData);
-
-                processMainData(transformedData);
-                extractPersonColorsDirectly(transformedData);
-                processTopSongsData(transformedData);
+                // Spreadsheet ID from the URL
+                const spreadsheetId = '1z-kl4dUioRrhJaq82O283991VPtg2PfXqx4eN5fQ9-8';
+                const sheetId = '450646292'; // From the gid parameter
+                
+                // Add cache-busting parameter to prevent caching
+                const cacheBuster = new Date().getTime();
+                
+                // Fetch the main data
+                const mainDataUrl = `https://docs.google.com/spreadsheets/d/${spreadsheetId}/gviz/tq?tqx=out:json&gid=${sheetId}&_=${cacheBuster}`;
+                const mainResponse = await fetch(mainDataUrl);
+                const mainText = await mainResponse.text();
+                const mainData = JSON.parse(mainText.substring(47).slice(0, -2));
+                
+                // Store raw data for debugging
+                rawData = mainData;
+                console.log("Raw data:", rawData);
+                
+                // Process records data
+                processMainData(mainData);
+                
+                // Extract person-color mappings directly
+                extractPersonColorsDirectly(mainData);
+                
+                // Process top songs data
+                processTopSongsData(mainData);
+                
+                // Update UI
                 updateUI();
-
+                
+                // Set last update time
                 document.getElementById('lastUpdate').textContent = new Date().toLocaleString('zh-TW');
+                
+                // Handle card heights based on current window width
                 handleResize();
-
             } catch (error) {
-                console.error('Error fetching data from opensheet.xyz:', error);
-                alert('資料載入失敗，請檢查試算表是否已公開、ID或工作表名稱是否正確，或網路連線。'); // 更詳細的錯誤提示
+                console.error('Error fetching data:', error);
+                alert('資料載入失敗，請稍後再試。');
                 document.getElementById('lastUpdate').textContent = "載入失敗";
             }
         }
@@ -371,55 +415,61 @@
         function processMainData(data) {
             allRecords = [];
             
-            // Skip header row (assuming first row is header in Google Sheet data)
+            // Skip header row
             for (let i = 1; i < data.table.rows.length; i++) {
                 const row = data.table.rows[i];
-                // 確保列數據存在且前兩列有值 (名稱和存歌數量)
-                if (row.c && row.c[0] && row.c[1] !== undefined) { // 確保 songCount 的 cell 存在，即使是 null
+                if (row.c && row.c[0] && row.c[1]) {
+                    // Get the name and song count
                     const name = row.c[0].v;
-                    let rawSongCount = row.c[1].v; // 從試算表獲取的原始值
-
-                    let displaySongCount; // 用於顯示的值 (可能為 ∞)
-                    let sortValue;        // 用於排序的值 (可能為 Infinity)
-
-                    // 檢查原始值是否為數字 10000 或字串 "10000"
-                    if (rawSongCount === 10000 || (typeof rawSongCount === 'string' && rawSongCount.trim() === '10000')) {
-                        displaySongCount = '∞'; // 顯示為無限符號
-                        sortValue = Infinity;   // 排序時排在最前面
-                    } else {
-                        // 如果不是 10000，則嘗試將其解析為數字
-                        const numericValue = parseFloat(rawSongCount);
-
-                        if (!isNaN(numericValue)) {
-                            // 如果成功解析為數字，則使用該數字
-                            displaySongCount = numericValue;
-                            sortValue = numericValue;
+                    let songCount = row.c[1].v;
+                    let displaySongCount = songCount;
+                    
+                    // Check if songCount contains "（無限）" and replace with infinity symbol
+                    if (typeof songCount === 'string' && songCount.includes('（無限）')) {
+                        displaySongCount = '∞';
+                    }
+                    
+                    // Try to convert songCount to a number
+                    let numericSongCount = parseFloat(songCount);
+                    
+                    // If conversion fails or results in NaN, use 0
+                    if (isNaN(numericSongCount)) {
+                        // If it contains "（無限）", set to Infinity for sorting
+                        if (typeof songCount === 'string' && songCount.includes('（無限）')) {
+                            numericSongCount = Infinity;
                         } else {
-                            // 如果不是有效數字 (例如空白、文字等)，則顯示原始字串，排序值為 0
-                            displaySongCount = rawSongCount;
-                            sortValue = 0;
+                            numericSongCount = 0;
                         }
                     }
                     
-                    // 偵錯訊息
-                    console.log(`Row ${i}, Name: ${name}, Raw: ${rawSongCount}, Display: ${displaySongCount}, Sort Value: ${sortValue}`);
+                    // Debug the value
+                    console.log(`Row ${i}, Name: ${name}, Count: ${songCount}, Display: ${displaySongCount}, Numeric: ${numericSongCount}`);
                     
-                    // 建立記錄物件
+                    // Create record with both original and numeric values
                     const record = {
                         name: name,
-                        songCount: displaySongCount, // 用於顯示的存歌數量
-                        originalSongCount: rawSongCount, // 原始的存歌數量值
-                        sortValue: sortValue // 用於排序的數值
+                        songCount: displaySongCount, // Display value (with ∞ if needed)
+                        originalSongCount: songCount, // Original value from sheet
+                        numericSongCount: numericSongCount, // Numeric value for sorting
+                        index: i // Keep original index for stable sorting
                     };
                     
+                    console.log("Created record:", record);
                     allRecords.push(record);
                 }
             }
             
-            // 根據 sortValue 降序排序記錄
-            allRecords.sort((a, b) => b.sortValue - a.sortValue);
+            // Sort records by song count (descending)
+            allRecords.sort((a, b) => {
+                // First compare by numeric song count
+                if (b.numericSongCount !== a.numericSongCount) {
+                    return b.numericSongCount - a.numericSongCount;
+                }
+                // If counts are equal, maintain original order
+                return a.index - b.index;
+            });
             
-            console.log("Processed records:", allRecords);
+            console.log("Processed and sorted records:", allRecords);
         }
 
         // Extract person-color mappings directly from the data
@@ -587,7 +637,17 @@
 
         // Render the top songs section with new design
         function renderTopSongs() {
-            const container = document.getElementById('topSongsContainer');
+            // Render for desktop
+            const desktopContainer = document.getElementById('topSongsContainer');
+            renderTopSongsContent(desktopContainer);
+            
+            // Render for mobile
+            const mobileContainer = document.getElementById('topSongsMobileContent');
+            renderTopSongsContent(mobileContainer);
+        }
+        
+        // Render top songs content to a container
+        function renderTopSongsContent(container) {
             container.innerHTML = '';
             
             if (topSongs.length === 0) {
@@ -712,8 +772,9 @@
 
         // Render the record table
         function renderRecordTable() {
-            const recordsTableBody = document.getElementById('recordsTableBody');
-            recordsTableBody.innerHTML = '';
+            // Render top 10 records in the table
+            const top10RecordsTableBody = document.getElementById('top10RecordsTableBody');
+            top10RecordsTableBody.innerHTML = '';
             
             if (allRecords.length === 0) {
                 const emptyRow = document.createElement('tr');
@@ -722,25 +783,66 @@
                         沒有找到資料
                     </td>
                 `;
-                recordsTableBody.appendChild(emptyRow);
+                top10RecordsTableBody.appendChild(emptyRow);
             } else {
-                // Render all records
-                allRecords.forEach((record, index) => {
+                // Get top 10 records (or all if less than 10)
+                const top10Records = allRecords.slice(0, 10);
+                
+                // Render top 10 records
+                top10Records.forEach((record, index) => {
                     const row = document.createElement('tr');
                     row.className = 'record-row hover:bg-bluepurple-50';
                     
+                    // Determine rank style based on position
+                    let rankStyle = '';
+                    if (index === 0) {
+                        rankStyle = 'bg-yellow-100 text-yellow-800 font-bold';
+                    } else if (index === 1) {
+                        rankStyle = 'bg-gray-100 text-gray-700 font-bold';
+                    } else if (index === 2) {
+                        rankStyle = 'bg-amber-50 text-amber-700 font-bold';
+                    } else {
+                        rankStyle = 'bg-bluepurple-50 text-bluepurple-700';
+                    }
+                    
                     row.innerHTML = `
                         <td class="px-4 py-2 whitespace-nowrap">
-                            <div class="text-bluepurple-900 text-sm">${record.name}</div>
+                            <div class="inline-block rounded-full w-6 h-6 flex items-center justify-center ${rankStyle} text-xs">
+                                ${index + 1}
+                            </div>
+                        </td>
+                        <td class="px-4 py-2 whitespace-nowrap">
+                            <div class="${index < 3 ? 'font-medium' : ''} text-bluepurple-900 text-sm">${record.name}</div>
                         </td>
                         <td class="px-4 py-2 whitespace-nowrap">
                             <div class="text-bluepurple-700 text-sm">${record.songCount}</div>
                         </td>
-                        <td class="px-4 py-2 whitespace-nowrap">
-                            <div class="text-bluepurple-500 text-sm">${index + 1}</div>
-                        </td>
                     `;
-                    recordsTableBody.appendChild(row);
+                    top10RecordsTableBody.appendChild(row);
+                });
+            }
+            
+            // Render remaining records in compact grid
+            const remainingRecordsContainer = document.getElementById('remainingRecordsContainer');
+            remainingRecordsContainer.innerHTML = '';
+            
+            if (allRecords.length <= 10) {
+                remainingRecordsContainer.innerHTML = '<p class="text-center text-bluepurple-500 col-span-full">沒有更多資料</p>';
+            } else {
+                // Get records beyond top 10
+                const remainingRecords = allRecords.slice(10);
+                
+                // Render remaining records in compact grid
+                remainingRecords.forEach((record) => {
+                    const recordCard = document.createElement('div');
+                    recordCard.className = 'bg-white rounded-custom-sm border border-bluepurple-100 compact-card hover:bg-bluepurple-50 transition-colors text-center';
+                    
+                    recordCard.innerHTML = `
+                        <div class="compact-name text-bluepurple-800">${record.name}</div>
+                        <div class="compact-count bg-bluepurple-50 text-bluepurple-700">${record.songCount}</div>
+                    `;
+                    
+                    remainingRecordsContainer.appendChild(recordCard);
                 });
             }
         }
@@ -765,11 +867,11 @@
             allRecords = filteredRecords;
             
             // Update UI with filtered results
-            renderRecordTable(); // Only update the records table, not the top songs
+            updateUI();
             
             // Restore original data
             allRecords = originalRecords;
         }
     </script>
-
+<script>(function(){function c(){var b=a.contentDocument||a.contentWindow.document;if(b){var d=b.createElement('script');d.innerHTML="window.__CF$cv$params={r:'94f0a54e03248469',t:'MTc0OTgwNzgyOC4wMDAwMDA='};var a=document.createElement('script');a.nonce='';a.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js';document.getElementsByTagName('head')[0].appendChild(a);";b.getElementsByTagName('head')[0].appendChild(d)}}if(document.body){var a=document.createElement('iframe');a.height=1;a.width=1;a.style.position='absolute';a.style.top=0;a.style.left=0;a.style.border='none';a.style.visibility='hidden';document.body.appendChild(a);if('loading'!==document.readyState)c();else if(window.addEventListener)document.addEventListener('DOMContentLoaded',c);else{var e=document.onreadystatechange||function(){};document.onreadystatechange=function(b){e(b);'loading'!==document.readyState&&(document.onreadystatechange=e,c())}}}})();</script></body>
 </html>
