@@ -33,7 +33,8 @@
             transform: translateY(-3px);
             box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
         }
-        .song-count-badge {
+        /* Removed song-count-badge styles as it's being removed from HTML */
+        /* .song-count-badge {
             position: absolute;
             top: 8px;
             right: 8px;
@@ -42,7 +43,7 @@
             font-size: 0.7rem;
             font-weight: bold;
             background: rgba(255, 255, 255, 0.9);
-        }
+        } */
         .card-content {
             flex-grow: 1;
             display: flex;
@@ -655,17 +656,6 @@
                 // Determine text color based on background darkness
                 const textColorClass = personColor.isDark ? 'text-white' : 'text-gray-800';
                 
-                // Create background style for card content
-                let bgStyle = '';
-                if (personColor.hex) {
-                    // For hex colors, use inline style with opacity
-                    const bgColor = personColor.hex + '33'; // 20% opacity
-                    bgStyle = `style="background-color: ${bgColor};"`;
-                } else {
-                    // For named colors, use opacity class
-                    bgStyle = `class="${personColor.primary.replace('bg-', 'bg-opacity-20 bg-')}"`;
-                }
-                
                 // Add person header with crown icon
                 let headerBgClass = '';
                 if (personColor.hex) {
@@ -682,15 +672,25 @@
                             </svg>
                             <h3 class="font-bold text-sm ${textColorClass}">${person}</h3>
                         </div>
-                        <span class="song-count-badge text-gray-800 border ${personColor.border}">
+                        <!-- Removed song-count-badge as per request -->
+                        <!-- <span class="song-count-badge text-gray-800 border ${personColor.border}">
                             ${personSongs.length} 首
-                        </span>
+                        </span> -->
                     </div>
-                    <div ${bgStyle} class="card-content">
+                    <div class="card-content">
                         <ul class="songs-list p-2 space-y-1">
                             ${personSongs.map(song => {
+                                // Determine background style for song list item
+                                let songItemBgStyle = '';
+                                let songItemBgClass = '';
+                                if (personColor.hex) {
+                                    songItemBgStyle = `background-color: ${personColor.hex}1A;`; // 10% opacity
+                                } else {
+                                    songItemBgClass = `${personColor.primary.replace('bg-', 'bg-opacity-10 bg-')}`; // 10% opacity
+                                }
+
                                 return `
-                                <li class="flex items-center justify-between bg-white p-1.5 rounded-custom-sm shadow-sm border ${personColor.border}">
+                                <li style="${songItemBgStyle}" class="flex items-center justify-between p-1.5 rounded-custom-sm shadow-sm border ${personColor.border} ${songItemBgClass}">
                                     <span class="font-medium text-gray-800 truncate mr-2 text-xs">${song.song}</span>
                                     <span class="flex items-center text-gray-800 text-xs font-bold">
                                         ${crownIcon}
@@ -777,7 +777,8 @@
                     } else if (index === 2) {
                         rankStyle = 'bg-amber-50 text-amber-700 font-bold';
                     } else {
-                        rankStyle = 'bg-bluepurple-50 text-bluepurple-700';
+                        // Adjusted default rank badge color for better appearance
+                        rankStyle = 'bg-bluepurple-100 text-bluepurple-700'; 
                     }
                     
                     row.innerHTML = `
