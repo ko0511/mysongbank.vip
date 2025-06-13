@@ -302,7 +302,7 @@
         let topSongs = [];
         let personColors = {}; // Store colors for each person
         let rawData = null; // Store raw data for debugging
-        let currentSearchTerm = ''; // New: Stores the current search term
+        let currentSearchTerm = ''; // Stores the current search term
 
         // Crown icon for different multipliers
         const crownIcon = `<svg class="w-4 h-4 text-yellow-500" fill="currentColor" viewBox="0 0 20 20" xmlns="http://www.w3.org/2000/svg">
@@ -317,6 +317,10 @@
 
         // Initialize the application
         document.addEventListener('DOMContentLoaded', () => {
+            // Set initial search input value if currentSearchTerm is not empty
+            if (currentSearchTerm) {
+                searchInput.value = currentSearchTerm;
+            }
             fetchData();
             setupEventListeners();
         });
@@ -324,7 +328,7 @@
         // Set up event listeners
         function setupEventListeners() {
             refreshBtn.addEventListener('click', fetchData);
-            searchInput.addEventListener('input', handleSearch); // Use searchInput
+            searchInput.addEventListener('input', handleSearch);
             document.getElementById('expandCrownBtn').addEventListener('click', expandCrownSection);
             
             // Add resize event listener to handle card heights
@@ -408,7 +412,7 @@
                 handleResize();
             } catch (error) {
                 console.error('Error fetching data:', error);
-                alert('資料載入失敗，請檢查試算表連結或權限。');
+                alert('資料載入失敗，請檢查試算表連結或權限。錯誤訊息：' + error.message);
             } finally {
                 // Hide loading state
                 refreshBtn.disabled = false;
@@ -418,8 +422,8 @@
         }
 
         // Process the main data from the spreadsheet (存歌區)
-        function processMainData(data) {
-            let tempRecords = []; // Use a temporary array to build records
+        function processMainData(data) { // data is the gviz/tq JSON object
+            let tempRecords = []; 
             
             // Skip header row (data.table.rows[0])
             for (let i = 0; i < data.table.rows.length; i++) {
@@ -472,7 +476,7 @@
         }
 
         // Extract person-color mappings directly from the data
-        function extractPersonColorsDirectly(data) {
+        function extractPersonColorsDirectly(data) { // data is the gviz/tq JSON object
             personColors = {}; // Reset person colors
             
             for (let i = 0; i < data.table.rows.length; i++) {
@@ -484,8 +488,8 @@
                     
                     // Store the color for this person if not already stored
                     if (person && color && !personColors[person]) {
-                        // Check if color starts with # (hex color)
-                        if (color.startsWith('#')) {
+                        // Ensure color is treated as string before checking startsWith
+                        if (String(color).startsWith('#')) { 
                             // Create color styles from hex color
                             personColors[person] = getColorStylesFromHex(color);
                         } else {
@@ -498,7 +502,7 @@
         }
 
         // Process the top songs data (冠歌區)
-        function processTopSongsData(data) {
+        function processTopSongsData(data) { // data is the gviz/tq JSON object
             topSongs = [];
             
             for (let i = 0; i < data.table.rows.length; i++) {
@@ -520,8 +524,6 @@
                     }
                 }
             }
-            
-            // Assign default colors to persons without specified colors
             assignDefaultColorsToPersons();
         }
 
