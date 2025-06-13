@@ -239,7 +239,7 @@
                         <!-- Search and Refresh moved here, always row on mobile -->
                         <div class="flex items-center space-x-2 w-full md:w-auto">
                             <div class="relative flex-grow">
-                                <input id="searchInput" type="text" placeholder="搜尋..." class="px-3 py-1.5 pr-8 rounded-custom text-gray-800 focus:outline-none focus:ring-2 focus:ring-bluepurple-300 w-full max-w-[150px] md:max-w-none border border-bluepurple-100 text-sm">
+                                <input id="searchInput" type="text" placeholder="搜尋..." class="px-3 py-1.5 pr-8 rounded-custom text-gray-800 focus:outline-none focus:ring-2 focus:ring-bluepurple-300 w-full border border-bluepurple-100 text-sm">
                                 <svg class="w-4 h-4 absolute right-3 top-1/2 -translate-y-1/2 text-bluepurple-400" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
                                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path>
                                 </svg>
@@ -829,25 +829,29 @@
         function handleSearch(e) {
             const searchTerm = e.target.value.toLowerCase().trim();
             
+            // Store the original allRecords before filtering
+            const originalRecords = [...allRecords];
+
             if (searchTerm === '') {
-                // Reset to original data
+                // If search term is empty, reset to original data
+                allRecords = originalRecords; // Ensure allRecords is the full, original list
                 updateUI();
                 return;
             }
             
             // Filter records based on search term
-            const filteredRecords = allRecords.filter(record => 
+            const filteredRecords = originalRecords.filter(record => // Filter from the original list
                 record.name.toLowerCase().includes(searchTerm)
             );
             
-            // Temporarily replace allRecords with filtered results
-            const originalRecords = [...allRecords];
+            // Temporarily set allRecords to filtered results for rendering
             allRecords = filteredRecords;
             
-            // Update UI with filtered results
+            // Update UI with filtered results. The ranks displayed will be based on this filtered set.
             updateUI();
             
-            // Restore original data
+            // Restore original data immediately after rendering, so subsequent operations
+            // (like another search or refresh) work on the full dataset.
             allRecords = originalRecords;
         }
     </script>
