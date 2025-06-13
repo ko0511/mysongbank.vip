@@ -9,7 +9,8 @@
     <style>
         body {
             font-family: 'Noto Sans TC', sans-serif;
-            background-color: #f8faff;
+            /* Changed body background to a more noticeable light blue-purple */
+            background-color: #e0eaff; /* bg-bluepurple-100 */
         }
         .shimmer {
             background: linear-gradient(90deg, #f0f0f0 25%, #e0e0e0 50%, #f0f0f0 75%);
@@ -210,7 +211,7 @@
         </header>
 
         <!-- Top Songs Section -->
-        <section class="py-4 bg-white shadow-sm">
+        <section class="py-4 bg-bluepurple-50 shadow-sm"> <!-- Changed from bg-white -->
             <div class="container mx-auto px-4">
                 <h2 class="text-xl font-bold mb-4 text-bluepurple-800 flex items-center">
                     <svg class="w-5 h-5 mr-2 text-yellow-500" fill="currentColor" viewBox="0 0 20 20" xmlns="http://www.w3.org/2000/svg">
@@ -248,7 +249,7 @@
         <!-- Main Content -->
         <section class="py-4">
             <div class="container mx-auto px-4">
-                <div class="bg-white rounded-custom-lg shadow-md overflow-hidden border border-bluepurple-100">
+                <div class="bg-bluepurple-50 rounded-custom-lg shadow-md overflow-hidden border border-bluepurple-100"> <!-- Changed from bg-white -->
                     <div class="p-4 border-b border-bluepurple-100">
                         <div>
                             <h2 class="text-xl font-bold text-bluepurple-800 flex items-center">
@@ -651,7 +652,8 @@
                 
                 // Create a card for this person
                 const personCard = document.createElement('div');
-                personCard.className = 'bg-white rounded-custom shadow-sm overflow-hidden border border-gray-200 relative crown-card';
+                // Changed card background and border
+                personCard.className = 'bg-bluepurple-50 rounded-custom shadow-sm overflow-hidden border border-bluepurple-100 relative crown-card'; 
                 
                 // Determine text color based on background darkness
                 const textColorClass = personColor.isDark ? 'text-white' : 'text-gray-800';
@@ -680,13 +682,13 @@
                     <div class="card-content">
                         <ul class="songs-list p-2 space-y-1">
                             ${personSongs.map(song => {
-                                // Determine background style for song list item
+                                // Determine background style for song list item, increased opacity
                                 let songItemBgStyle = '';
                                 let songItemBgClass = '';
                                 if (personColor.hex) {
-                                    songItemBgStyle = `background-color: ${personColor.hex}1A;`; // 10% opacity
+                                    songItemBgStyle = `background-color: ${personColor.hex}33;`; // 20% opacity
                                 } else {
-                                    songItemBgClass = `${personColor.primary.replace('bg-', 'bg-opacity-10 bg-')}`; // 10% opacity
+                                    songItemBgClass = `${personColor.primary.replace('bg-', 'bg-opacity-20 bg-')}`; // 20% opacity
                                 }
 
                                 return `
@@ -811,7 +813,8 @@
                 // Render remaining records in compact grid
                 remainingRecords.forEach((record) => {
                     const recordCard = document.createElement('div');
-                    recordCard.className = 'bg-white rounded-custom-sm border border-bluepurple-100 compact-card hover:bg-bluepurple-50 transition-colors text-center';
+                    // Changed compact card background
+                    recordCard.className = 'bg-bluepurple-100 rounded-custom-sm border border-bluepurple-100 compact-card hover:bg-bluepurple-50 transition-colors text-center';
                     
                     recordCard.innerHTML = `
                         <div class="compact-name text-bluepurple-800">${record.name}</div>
