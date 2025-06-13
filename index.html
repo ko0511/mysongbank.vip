@@ -302,7 +302,7 @@
         let topSongs = [];
         let personColors = {}; // Store colors for each person
         let rawData = null; // Store raw data for debugging
-        let currentSearchTerm = ''; // New: Stores the current search term
+        let currentSearchTerm = ''; // Stores the current search term
 
         // Crown icon for different multipliers
         const crownIcon = `<svg class="w-4 h-4 text-yellow-500" fill="currentColor" viewBox="0 0 20 20" xmlns="http://www.w3.org/2000/svg">
@@ -324,7 +324,7 @@
         // Set up event listeners
         function setupEventListeners() {
             refreshBtn.addEventListener('click', fetchData);
-            searchInput.addEventListener('input', handleSearch); // Use searchInput
+            searchInput.addEventListener('input', handleSearch);
             document.getElementById('expandCrownBtn').addEventListener('click', expandCrownSection);
             
             // Add resize event listener to handle card heights
@@ -364,7 +364,7 @@
             }
         }
 
-        // Fetch data from Google Sheets (gviz/tq endpoint)
+        // Fetch data from Google Sheets using opensheet.elk.sh
         async function fetchData() {
             try {
                 // Show loading state
@@ -372,34 +372,31 @@
                 refreshBtnText.textContent = '載入中...';
                 loadingSpinner.classList.remove('hidden');
                 
-                // Spreadsheet ID from the URL
+                // Spreadsheet ID and Sheet ID
                 const spreadsheetId = '1z-kl4dUioRrhJaq82O283991VPtg2PfXqx4eN5fQ9-8';
                 const sheetId = '450646292'; // From the gid parameter
                 
-                // Add cache-busting parameter to prevent caching
-                const cacheBuster = new Date().getTime();
+                // Use opensheet.elk.sh as a proxy
+                const dataUrl = `https://opensheet.elk.sh/${spreadsheetId}/${sheetId}`;
                 
-                // Fetch the main data using gviz/tq
-                const mainDataUrl = `https://docs.google.com/spreadsheets/d/${spreadsheetId}/gviz/tq?tqx=out:json&gid=${sheetId}&_=${cacheBuster}`;
-                const mainResponse = await fetch(mainDataUrl);
-                const mainText = await mainResponse.text();
-                
-                // Parse the JSON response, stripping the wrapper
-                const jsonString = mainText.substring(mainText.indexOf('{'), mainText.lastIndexOf('}') + 1);
-                const mainData = JSON.parse(jsonString);
+                const response = await fetch(dataUrl);
+                if (!response.ok) {
+                    throw new Error(`HTTP error! status: ${response.status}`);
+                }
+                const data = await response.json(); // opensheet returns direct JSON array
                 
                 // Store raw data for debugging
-                rawData = mainData;
-                console.log("Raw data from gviz/tq:", rawData);
+                rawData = data;
+                console.log("Raw data from opensheet.elk.sh:", rawData);
                 
                 // Process records data and assign global ranks
-                processMainData(mainData);
+                processMainData(data); // Pass the direct JSON array
                 
                 // Extract person-color mappings directly
-                extractPersonColorsDirectly(mainData);
+                extractPersonColorsDirectly(data); // Pass the direct JSON array
                 
                 // Process top songs data
-                processTopSongsData(mainData);
+                processTopSongsData(data); // Pass the direct JSON array
                 
                 // Update UI, which will now apply the current search term if any
                 updateUI();
@@ -408,7 +405,7 @@
                 handleResize();
             } catch (error) {
                 console.error('Error fetching data:', error);
-                alert('資料載入失敗，請檢查試算表連結或權限。');
+                alert('資料載入失敗，請檢查試算表連結或權限。錯誤訊息：' + error.message);
             } finally {
                 // Hide loading state
                 refreshBtn.disabled = false;
@@ -418,17 +415,15 @@
         }
 
         // Process the main data from the spreadsheet (存歌區)
-        function processMainData(data) {
-            let tempRecords = []; // Use a temporary array to build records
+        function processMainData(data) { // data is now an array of objects
+            let tempRecords = []; 
             
-            // Skip header row (data.table.rows[0])
-            for (let i = 0; i < data.table.rows.length; i++) {
-                const row = data.table.rows[i];
-                // Ensure row.c exists and has enough columns for '名字' (index 0) and '存歌' (index 1)
-                if (row.c && row.c[0] && row.c[1] && row.c[0].v !== null && row.c[1].v !== null) {
-                    const name = row.c[0].v; // Column A: 名字
-                    let songCount = row.c[1].v; // Column B: 存歌
-                    
+            data.forEach((row, i) => {
+                const name = row['名字']; // Access by column header name
+                let songCount = row['存歌']; // Access by column header name
+
+                // Ensure data exists and is not null/undefined
+                if (name !== undefined && name !== null && songCount !== undefined && songCount !== null) {
                     let displaySongCount = songCount;
                     let numericSongCount = parseFloat(songCount);
                     
@@ -450,7 +445,7 @@
                     
                     tempRecords.push(record);
                 }
-            }
+            });
             
             // Sort records by song count (descending)
             tempRecords.sort((a, b) => {
@@ -472,56 +467,46 @@
         }
 
         // Extract person-color mappings directly from the data
-        function extractPersonColorsDirectly(data) {
+        function extractPersonColorsDirectly(data) { // data is now an array of objects
             personColors = {}; // Reset person colors
             
-            for (let i = 0; i < data.table.rows.length; i++) {
-                const row = data.table.rows[i];
-                // Check if we have data in columns H (7) and K (10)
-                if (row.c && row.c[7] && row.c[10] && row.c[7].v !== null && row.c[10].v !== null) {
-                    const person = row.c[7].v; // Column H: 冠歌人
-                    const color = row.c[10].v; // Column K: 顏色
-                    
-                    // Store the color for this person if not already stored
-                    if (person && color && !personColors[person]) {
-                        // Check if color starts with # (hex color)
-                        if (color.startsWith('#')) {
-                            // Create color styles from hex color
-                            personColors[person] = getColorStylesFromHex(color);
-                        } else {
-                            // Use named color
-                            personColors[person] = getColorStyles(color);
-                        }
+            data.forEach(row => {
+                const person = row['冠歌人']; // Access by column header name
+                const color = row['顏色']; // Access by column header name
+                
+                // Store the color for this person if not already stored
+                if (person && color && !personColors[person]) {
+                    // Ensure color is treated as string before checking startsWith
+                    if (String(color).startsWith('#')) { 
+                        // Create color styles from hex color
+                        personColors[person] = getColorStylesFromHex(color);
+                    } else {
+                        // Use named color
+                        personColors[person] = getColorStyles(color);
                     }
                 }
-            }
+            });
         }
 
         // Process the top songs data (冠歌區)
-        function processTopSongsData(data) {
+        function processTopSongsData(data) { // data is now an array of objects
             topSongs = [];
             
-            for (let i = 0; i < data.table.rows.length; i++) {
-                const row = data.table.rows[i];
-                // Check if we have data in columns H (7), I (8), J (9)
-                if (row.c && row.c[7] && row.c[8] && row.c[9] && row.c[7].v !== null && row.c[8].v !== null && row.c[9].v !== null) {
-                    const person = row.c[7].v; // Column H: 冠歌人
-                    const song = row.c[8].v; // Column I: 冠歌歌曲
-                    const multiplier = row.c[9].v; // Column J: 倍數
-                    
-                    // Only add if we have all required data
-                    if (person && song && multiplier) {
-                        const topSong = {
-                            person: person,
-                            song: song,
-                            multiplier: multiplier
-                        };
-                        topSongs.push(topSong);
-                    }
+            data.forEach(row => {
+                const person = row['冠歌人']; // Access by column header name
+                const song = row['冠歌歌曲']; // Access by column header name
+                const multiplier = row['倍數']; // Access by column header name
+                
+                // Only add if we have all required data
+                if (person && song && multiplier) {
+                    const topSong = {
+                        person: person,
+                        song: song,
+                        multiplier: multiplier
+                    };
+                    topSongs.push(topSong);
                 }
-            }
-            
-            // Assign default colors to persons without specified colors
+            });
             assignDefaultColorsToPersons();
         }
 
