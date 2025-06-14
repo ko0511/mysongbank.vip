@@ -720,7 +720,7 @@
             }
         }
 
-        // Make all crown cards the same height
+        // Make all crown cards the same height based on the leftmost card in each row
         function equalizeCardHeights() {
             const cards = document.querySelectorAll('.crown-card');
             if (cards.length === 0) return;
@@ -730,16 +730,34 @@
                 card.style.height = 'auto';
             });
             
-            // Find the tallest card
-            let maxHeight = 0;
-            cards.forEach(card => {
-                maxHeight = Math.max(maxHeight, card.offsetHeight);
-            });
-            
-            // Set all cards to the tallest height
-            cards.forEach(card => {
-                card.style.height = `${maxHeight}px`;
-            });
+            // Determine number of columns based on TailwindCSS breakpoints
+            let columns = 1; // Default for mobile
+            const windowWidth = window.innerWidth;
+            if (windowWidth >= 1024) { // lg breakpoint
+                columns = 4;
+            } else if (windowWidth >= 768) { // md breakpoint
+                columns = 3;
+            }
+
+            // Group cards by row and apply height
+            for (let i = 0; i < cards.length; i += columns) {
+                let rowCards = [];
+                let leftmostCardHeight = 0;
+
+                // Collect cards for the current row
+                for (let j = 0; j < columns && (i + j) < cards.length; j++) {
+                    const card = cards[i + j];
+                    rowCards.push(card);
+                    if (j === 0) { // This is the leftmost card in the row
+                        leftmostCardHeight = card.offsetHeight;
+                    }
+                }
+
+                // Apply the leftmost card's height to all cards in this row
+                rowCards.forEach(card => {
+                    card.style.height = `${leftmostCardHeight}px`;
+                });
+            }
         }
         
         // Reset card heights to auto
