@@ -41,7 +41,7 @@
         .songs-list {
             flex-grow: 1;
             overflow-y: auto;
-            max-height: 200px;
+            max-height: 200px; /* 保持最大高度，允許滾動 */
         }
         
         /* 調整圓角為更方一點 */
@@ -711,9 +711,12 @@
             
             // Make all cards the same height on desktop
             if (window.innerWidth >= 768) { // md breakpoint
-                setTimeout(() => {
-                    equalizeCardHeights();
-                }, 100);
+                // 使用 requestAnimationFrame 確保在瀏覽器重繪前執行，提高高度計算的準確性
+                requestAnimationFrame(() => {
+                    requestAnimationFrame(() => { // 雙層 rAF 更為穩健
+                        equalizeCardHeights();
+                    });
+                });
             }
         }
 
