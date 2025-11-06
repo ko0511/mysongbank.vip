@@ -206,28 +206,20 @@
                 </h2>
                 
                 <!-- 桌面版顯示 -->
-                <div id="topSongsContainer" class="space-y-4 hidden md:block">
-                    <!-- Loading placeholders -->
-                    <div class="shimmer h-32 rounded-custom-lg"></div>
-                    <div class="shimmer h-32 rounded-custom-lg"></div>
-                </div>
-                
-                <!-- 手機版顯示 (可折疊) -->
-                <div id="topSongsMobileContainer" class="crown-section-mobile md:hidden">
-                    <div id="topSongsMobileContent" class="space-y-4">
-                        <!-- Loading placeholders -->
-                        <div class="shimmer h-32 rounded-custom-lg"></div>
-                        <div class="shimmer h-32 rounded-custom-lg"></div>
-                    </div>
-                    <div class="crown-section-gradient">
-                        <button id="expandCrownBtn" class="bg-white text-bluepurple-700 px-3 py-1.5 rounded-full text-sm font-medium hover:bg-bluepurple-50 transition-colors border border-bluepurple-200 shadow-sm flex items-center">
-                            <svg class="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path>
-                            </svg>
-                            顯示更多
-                        </button>
-                    </div>
-                </div>
+<div id="topSongsContainer" class="crown-section-mobile">
+    <div id="topSongsContent" class="space-y-4">
+        <div class="shimmer h-32 rounded-custom-lg"></div>
+        <div class="shimmer h-32 rounded-custom-lg"></div>
+    </div>
+    <div class="crown-section-gradient">
+        <button id="expandCrownBtn" class="bg-white text-bluepurple-700 px-3 py-1.5 rounded-full text-sm font-medium hover:bg-bluepurple-50 transition-colors border border-bluepurple-200 shadow-sm flex items-center">
+            <svg class="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path>
+            </svg>
+            顯示更多
+        </button>
+    </div>
+</div>
             </div>
         </section>
 
@@ -337,38 +329,39 @@
             window.addEventListener('resize', handleResize);
         }
         
-        // Expand crown section on mobile
-        function expandCrownSection() {
-            const container = document.getElementById('topSongsMobileContainer');
-            container.classList.toggle('expanded');
-            
-            const button = document.getElementById('expandCrownBtn');
-            if (container.classList.contains('expanded')) {
-                button.innerHTML = `
-                    <svg class="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 15l7-7 7 7"></path>
-                    </svg>
-                    收起
-                `;
-            } else {
-                button.innerHTML = `
-                    <svg class="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path>
-                    </svg>
-                    顯示更多
-                `;
-            }
-        }
+        // Expand crown section on all screen sizes
+function expandCrownSection() {
+    // 【✅ 修正 ID：使用統一的 topSongsContainer】
+    const container = document.getElementById('topSongsContainer'); 
+    container.classList.toggle('expanded');
+    
+    const button = document.getElementById('expandCrownBtn');
+    
+    if (container.classList.contains('expanded')) {
+        // 展開時，執行高度調整確保卡片高度正確
+        equalizeCardHeights(); 
         
-        // Handle resize event for card heights
-        function handleResize() {
-            const windowWidth = window.innerWidth;
-            if (windowWidth >= 768) { // md breakpoint
-                equalizeCardHeights();
-            } else {
-                resetCardHeights();
-            }
-        }
+        button.innerHTML = `
+            <svg class="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 15l7-7 7 7"></path>
+            </svg>
+            收起
+        `;
+    } else {
+        button.innerHTML = `
+            <svg class="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path>
+            </svg>
+            顯示更多
+        `;
+    }
+}
+        
+        // Handle resize event for card heights and ensure height equalization always runs
+function handleResize() {
+    // 高度調整應該在折疊區展開後執行，確保在所有尺寸下都運行
+    equalizeCardHeights();
+}
 
         // Fetch data from Google Sheets (gviz/tq endpoint)
         // Fetch data using OpenSheet
@@ -647,15 +640,24 @@ function calculateMaxSongNameWidth() {
         }
 
         // Render the top songs section with new design
-        function renderTopSongs() {
-            // Render for desktop
-            const desktopContainer = document.getElementById('topSongsContainer');
-            renderTopSongsContent(desktopContainer);
-            
-            // Render for mobile
-            const mobileContainer = document.getElementById('topSongsMobileContent');
-            renderTopSongsContent(mobileContainer);
+function renderTopSongs() {
+    // 統一渲染到新的內容容器
+    const contentContainer = document.getElementById('topSongsContent');
+    renderTopSongsContent(contentContainer);
+    
+    // 檢查是否需要顯示折疊按鈕 (如果內容超出最大高度)
+    const foldContainer = document.getElementById('topSongsContainer');
+    const expandBtn = document.getElementById('expandCrownBtn');
+
+    // 延遲執行，確保內容已渲染且高度已計算
+    requestAnimationFrame(() => {
+        if (foldContainer.scrollHeight > foldContainer.clientHeight + 5) { // 允許 5px 誤差
+            expandBtn.style.display = 'flex';
+        } else {
+            expandBtn.style.display = 'none';
         }
+    });
+}
         
         // Render top songs content to a container
         function renderTopSongsContent(container) {
@@ -747,17 +749,15 @@ function calculateMaxSongNameWidth() {
                 personsContainer.appendChild(personCard);
             });
             
+            // ... (約 794 行)
             container.appendChild(personsContainer);
             
-            // Make all cards the same height on desktop
-            if (window.innerWidth >= 768) { // md breakpoint
-                // 使用 requestAnimationFrame 確保在瀏覽器重繪前執行，提高高度計算的準確性
-                requestAnimationFrame(() => {
-                    requestAnimationFrame(() => { // 雙層 rAF 更為穩健
-                        equalizeCardHeights();
-                    });
+            // 在渲染完成後，立即執行高度調整
+            requestAnimationFrame(() => {
+                requestAnimationFrame(() => { // 雙層 rAF 更為穩健
+                    equalizeCardHeights();
                 });
-            }
+            });
         }
 
 // Make all crown cards the same height based on the maximum height in each row
