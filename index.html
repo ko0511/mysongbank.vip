@@ -1,0 +1,927 @@
+
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+
+<link rel="shortcut icon" href="./favicon.ico"/>
+<link rel="apple-touch-icon" sizes="180x180" href="./apple-touch-icon.png">
+<link rel="icon" type="image/png" sizes="32x32" href="./favicon-32x32.png">
+<link rel="icon" type="image/png" sizes="16x16" href="./favicon-16x16.png">
+<link rel="manifest" href="./site.webmanifest">
+    
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>女开-存歌&冠歌</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@400;500;700&family=Noto+Sans+SC:wght@400;500;700&display=swap" rel="stylesheet">
+    <style>
+        body {
+            font-family: 'Noto Sans TC', 'Noto Sans SC', sans-serif;
+            background-color: #e0eaff; /* bg-bluepurple-100 */
+        }
+        .shimmer {
+            background: linear-gradient(90deg, #f0f0f0 25%, #e0e0e0 50%, #f0f0f0 75%);
+            background-size: 200% 100%;
+            animation: shimmer 1.5s infinite;
+        }
+        @keyframes shimmer {
+            0% { background-position: -200% 0; }
+            100% { background-position: 200% 0; }
+        }
+        .record-row:hover {
+            background-color: #f0f5ff;
+        }
+        .crown-card {
+            position: relative;
+            transition: all 0.3s ease;
+            display: flex;
+            flex-direction: column;
+        }
+        .crown-card:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
+        }
+        .card-content {
+            flex-grow: 1;
+            display: flex;
+            flex-direction: column;
+        }
+        .songs-list {
+            flex-grow: 1;
+            overflow-y: auto;
+            max-height: 200px; /* 保持最大高度，允許滾動 */
+        }
+        
+        /* 調整圓角為更方一點 */
+        .rounded-custom {
+            border-radius: 4px; /* Changed from 6px */
+        }
+        .rounded-custom-sm {
+            border-radius: 2px; /* Changed from 4px */
+        }
+        .rounded-custom-lg {
+            border-radius: 6px; /* Changed from 8px */
+        }
+        
+        /* 自定義藍紫色調 */
+        .bg-bluepurple-50 { background-color: #f0f5ff; }
+        .bg-bluepurple-100 { background-color: #e0eaff; }
+        .bg-bluepurple-200 { background-color: #c7d5ff; }
+        .bg-bluepurple-300 { background-color: #a5b9ff; }
+        .bg-bluepurple-400 { background-color: #8a9eff; }
+        .bg-bluepurple-500 { background-color: #6b7eff; }
+        .bg-bluepurple-600 { background-color: #5464db; }
+        .bg-bluepurple-700 { background-color: #4050b5; }
+        .bg-bluepurple-800 { background-color: #2d3c8f; }
+        .bg-bluepurple-900 { background-color: #1e2a6a; }
+        
+        .text-bluepurple-50 { color: #f0f5ff; }
+        .text-bluepurple-100 { color: #e0eaff; }
+        .text-bluepurple-200 { color: #c7d5ff; }
+        .text-bluepurple-300 { color: #a5b9ff; }
+        .text-bluepurple-400 { color: #8a9eff; }
+        .text-bluepurple-500 { color: #6b7eff; }
+        .text-bluepurple-600 { color: #5464db; }
+        .text-bluepurple-700 { color: #4050b5; }
+        .text-bluepurple-800 { color: #2d3c8f; }
+        .text-bluepurple-900 { color: #1e2a6a; }
+        
+        .border-bluepurple-50 { border-color: #f0f5ff; }
+        .border-bluepurple-100 { border-color: #e0eaff; }
+        .border-bluepurple-200 { border-color: #c7d5ff; }
+        .border-bluepurple-300 { border-color: #a5b9ff; }
+        .border-bluepurple-400 { border-color: #8a9eff; }
+        .border-bluepurple-500 { border-color: #6b7eff; }
+        .border-bluepurple-600 { border-color: #5464db; }
+        .border-bluepurple-700 { border-color: #4050b5; }
+        .border-bluepurple-800 { border-color: #2d3c8f; }
+        .border-bluepurple-900 { border-color: #1e2a6a; }
+        
+        /* 更緊湊的存歌區 */
+        .compact-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(100px, 1fr));
+            gap: 0.5rem;
+        }
+        .compact-card {
+            padding: 0.5rem;
+            height: 100%;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+        }
+        .compact-name {
+            font-size: 0.7rem;
+            line-height: 1.3;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            display: -webkit-box;
+            -webkit-line-clamp: 2;
+            -webkit-box-orient: vertical;
+        }
+        .compact-count {
+            font-size: 0.65rem;
+            padding: 0 0.25rem;
+            border-radius: 3px;
+            margin-top: 0.25rem;
+            display: inline-block;
+        }
+        
+        /* 冠歌區折疊效果 */
+        .crown-section-mobile {
+            position: relative;
+            max-height: 300px;
+            overflow: hidden;
+        }
+        .crown-section-mobile.expanded {
+            max-height: none;
+        }
+        .crown-section-gradient {
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            height: 80px;
+            background: linear-gradient(to bottom, rgba(255,255,255,0) 0%, rgba(255,255,255,0.9) 70%, rgba(255,255,255,1) 100%);
+            display: flex;
+            align-items: flex-end;
+            justify-content: center;
+            padding-bottom: 10px;
+        }
+        .crown-section-mobile.expanded .crown-section-gradient {
+            display: none;
+        }
+
+        /* Custom font size for extra extra small */
+        .text-xxs {
+            font-size: 0.65rem;
+            line-height: 1rem;
+        }
+    </style>
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        pastel: {
+                            pink: '#ffd1dc',
+                            blue: '#d1e8ff',
+                            purple: '#e8d1ff',
+                            yellow: '#fff8d1',
+                            green: '#d1ffdd',
+                            peach: '#ffe8d1',
+                            lavender: '#e0d1ff',
+                            mint: '#d1fff0',
+                            coral: '#ffded1',
+                            lilac: '#f0d1ff',
+                            bluepurple: '#d1d8ff'
+                        }
+                    }
+                }
+            }
+        }
+    </script>
+</head>
+<body>
+    <div class="min-h-screen">
+        <!-- Header -->
+        <header class="bg-gradient-to-r from-blue-200 to-bluepurple-300 shadow-md">
+            <div class="container mx-auto px-4 py-4">
+                <!-- Centered title -->
+                <div class="flex justify-center items-center">
+                    <h1 class="text-2xl font-bold text-bluepurple-800">女开-存歌&冠歌</h1>
+                </div>
+            </div>
+        </header>
+
+        <!-- Top Songs Section -->
+        <section class="py-4 bg-bluepurple-50 shadow-sm">
+            <div class="container mx-auto px-4">
+                <h2 class="text-xl font-bold mb-4 text-bluepurple-800 flex items-center">
+                    <!-- Crown icon -->
+                    <svg class="w-5 h-5 mr-2 text-yellow-500" fill="currentColor" viewBox="0 0 20 20" xmlns="http://www.w3.org/2000/svg">
+                        <path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z"></path>
+                    </svg>
+                    冠歌區
+                </h2>
+                
+                <!-- 桌面版顯示 -->
+                <div id="topSongsContainer" class="space-y-4 hidden md:block">
+                    <!-- Loading placeholders -->
+                    <div class="shimmer h-32 rounded-custom-lg"></div>
+                    <div class="shimmer h-32 rounded-custom-lg"></div>
+                </div>
+                
+                <!-- 手機版顯示 (可折疊) -->
+                <div id="topSongsMobileContainer" class="crown-section-mobile md:hidden">
+                    <div id="topSongsMobileContent" class="space-y-4">
+                        <!-- Loading placeholders -->
+                        <div class="shimmer h-32 rounded-custom-lg"></div>
+                        <div class="shimmer h-32 rounded-custom-lg"></div>
+                    </div>
+                    <div class="crown-section-gradient">
+                        <button id="expandCrownBtn" class="bg-white text-bluepurple-700 px-3 py-1.5 rounded-full text-sm font-medium hover:bg-bluepurple-50 transition-colors border border-bluepurple-200 shadow-sm flex items-center">
+                            <svg class="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path>
+                            </svg>
+                            顯示更多
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Main Content -->
+        <section class="py-4">
+            <div class="container mx-auto px-4">
+                <div class="bg-bluepurple-50 rounded-custom-lg shadow-md overflow-hidden border border-bluepurple-100">
+                    <div class="p-4 border-b border-bluepurple-100 flex flex-col md:flex-row md:items-center md:justify-between relative">
+                        <div class="mb-4 md:mb-0">
+                            <h2 class="text-xl font-bold text-bluepurple-800 flex items-center">
+                                <svg class="w-5 h-5 mr-2 text-bluepurple-500" fill="currentColor" viewBox="0 0 20 20" xmlns="http://www.w3.org/2000/svg">
+                                    <path fill-rule="evenodd" d="M10 2a4 4 0 00-4 4v1H5a1 1 0 00-.994.89l-1 9A1 1 0 004 18h12a1 1 0 00.994-1.11l-1-9A1 1 0 0015 7h-1V6a4 4 0 00-4-4zm2 5V6a2 2 0 10-4 0v1h4zm-6 3a1 1 0 112 0 1 1 0 01-2 0zm7-1a1 1 0 100 2 1 1 0 000-2z" clip-rule="evenodd"></path>
+                                </svg>
+                                存歌區
+                            </h2>
+                        </div>
+                        <!-- Search and Refresh moved here, always row on mobile -->
+                        <div class="flex items-center space-x-2 w-full md:w-auto">
+                            <div class="relative flex-grow">
+                                <input id="searchInput" type="text" placeholder="搜尋..." class="px-3 py-1.5 pr-8 rounded-custom text-gray-800 focus:outline-none focus:ring-2 focus:ring-bluepurple-300 w-full border border-bluepurple-100 text-base">
+                                <svg class="w-4 h-4 absolute right-3 top-1/2 -translate-y-1/2 text-bluepurple-400" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path>
+                                </svg>
+                            </div>
+                            <button id="refreshBtn" class="bg-white text-bluepurple-700 px-3 py-1.5 rounded-custom text-sm font-medium hover:bg-bluepurple-50 transition-colors flex-shrink-0 flex items-center border border-bluepurple-200 shadow-sm whitespace-nowrap">
+                                <svg class="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"></path>
+                                </svg>
+                                <span id="refreshBtnText">重新整理</span>
+                                <svg id="loadingSpinner" class="animate-spin h-4 w-4 text-bluepurple-700 ml-1 hidden" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                                    <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                                    <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                                </svg>
+                            </button>
+                        </div>
+                    </div>
+                    
+                    <!-- Top 10 Records Table -->
+                    <div class="overflow-x-auto">
+                        <table class="min-w-full divide-y divide-bluepurple-100">
+                            <thead class="bg-bluepurple-50">
+                                <tr>
+                                    <th scope="col" class="px-4 py-2 text-left text-xs font-medium text-bluepurple-700 uppercase tracking-wider">排序</th>
+                                    <th scope="col" class="px-4 py-2 text-left text-xs font-medium text-bluepurple-700 uppercase tracking-wider">名稱</th>
+                                    <th scope="col" class="px-4 py-2 text-left text-xs font-medium text-bluepurple-700 uppercase tracking-wider">存歌數量</th>
+                                </tr>
+                            </thead>
+                            <tbody id="top10RecordsTableBody" class="bg-white divide-y divide-bluepurple-100">
+                                <!-- Loading placeholders -->
+                                <tr><td colspan="3" class="px-4 py-2"><div class="shimmer h-5 w-full rounded-custom-sm"></div></td></tr>
+                                <tr><td colspan="3" class="px-4 py-2"><div class="shimmer h-5 w-full rounded-custom-sm"></div></td></tr>
+                                <tr><td colspan="3" class="px-4 py-2"><div class="shimmer h-5 w-full rounded-custom-sm"></div></td></tr>
+                            </tbody>
+                        </table>
+                    </div>
+                    
+                    <!-- Compact Grid View for remaining records -->
+                    <div class="p-4 border-t border-bluepurple-100">
+                        <div id="remainingRecordsContainer" class="compact-grid">
+                            <!-- Will be filled with records beyond top 10 -->
+                            <div class="shimmer h-10 w-full rounded-custom-sm"></div>
+                            <div class="shimmer h-10 w-full rounded-custom-sm"></div>
+                            <div class="shimmer h-10 w-full rounded-custom-sm"></div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+    </div>
+
+    <footer class="bg-bluepurple-100 text-bluepurple-800 py-3">
+        <div class="container mx-auto px-4">
+            <!-- Removed footer content -->
+        </div>
+    </footer>
+
+    <script>
+        // Global variables
+        let allRecords = [];
+        let topSongs = [];
+        let personColors = {}; // Store colors for each person
+        let rawData = null; // Store raw data for debugging
+
+        // Crown icon for different multipliers
+        const crownIcon = `<svg class="w-4 h-4 text-yellow-500" fill="currentColor" viewBox="0 0 20 20" xmlns="http://www.w3.org/2000/svg">
+                    <path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z"></path>
+                </svg>`;
+
+        // Get references to refresh button elements
+        const refreshBtn = document.getElementById('refreshBtn');
+        const refreshBtnText = document.getElementById('refreshBtnText');
+        const loadingSpinner = document.getElementById('loadingSpinner');
+
+        // Initialize the application
+        document.addEventListener('DOMContentLoaded', () => {
+            fetchData();
+            setupEventListeners();
+        });
+
+        // Set up event listeners
+        function setupEventListeners() {
+            refreshBtn.addEventListener('click', fetchData);
+            document.getElementById('searchInput').addEventListener('input', handleSearch);
+            document.getElementById('expandCrownBtn').addEventListener('click', expandCrownSection);
+            
+            // Add resize event listener to handle card heights
+            window.addEventListener('resize', handleResize);
+        }
+        
+        // Expand crown section on mobile
+        function expandCrownSection() {
+            const container = document.getElementById('topSongsMobileContainer');
+            container.classList.toggle('expanded');
+            
+            const button = document.getElementById('expandCrownBtn');
+            if (container.classList.contains('expanded')) {
+                button.innerHTML = `
+                    <svg class="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 15l7-7 7 7"></path>
+                    </svg>
+                    收起
+                `;
+            } else {
+                button.innerHTML = `
+                    <svg class="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path>
+                    </svg>
+                    顯示更多
+                `;
+            }
+        }
+        
+        // Handle resize event for card heights
+        function handleResize() {
+            const windowWidth = window.innerWidth;
+            if (windowWidth >= 768) { // md breakpoint
+                equalizeCardHeights();
+            } else {
+                resetCardHeights();
+            }
+        }
+
+        // Fetch data from Google Sheets (gviz/tq endpoint)
+        // Fetch data using OpenSheet
+        async function fetchData() {
+            try {
+                // 顯示載入狀態
+                refreshBtn.disabled = true;
+                refreshBtnText.textContent = '載入中...';
+                loadingSpinner.classList.remove('hidden');
+                
+                // --- 使用 OpenSheet 方式 ---
+                const spreadsheetId = '1z-kl4dUioRrhJaq82O283991VPtg2PfXqx4eN5fQ9-8';
+                // 使用您提供的分頁名稱
+                const sheetName = '存歌'; 
+                
+                // OpenSheet URL 格式：https://opensheet.vip/SpreadsheetId/SheetName
+                const dataUrl = `https://opensheet.elk.sh/${spreadsheetId}/${sheetName}`;
+                
+                console.log("Fetching data from OpenSheet URL:", dataUrl);
+
+                // OpenSheet 只需要試算表公開分享即可
+                const response = await fetch(dataUrl);
+
+                if (!response.ok) {
+                    throw new Error(`OpenSheet HTTP 錯誤! 狀態: ${response.status}`);
+                }
+                
+                // OpenSheet 直接回傳 JSON 陣列
+                const rawData = await response.json();
+                
+                // 檢查 OpenSheet 是否返回資料
+                if (!rawData || rawData.length === 0 || rawData[0].error) {
+                    throw new Error('OpenSheet 未返回任何資料。請檢查試算表是否已公開分享，且分頁名稱是否正確。');
+                }
+                
+                // 1. 處理顏色與冠歌資料 (OpenSheet 格式)
+                processOpenSheetColors(rawData);
+                processOpenSheetTopSongs(rawData);
+                calculateMaxSongNameWidth();
+                
+                // 2. 處理存歌資料 (OpenSheet 格式)
+                processOpenSheetRecords(rawData);
+                
+                // 更新 UI
+                updateUI();
+                
+                // 處理卡片高度
+                handleResize();
+            } catch (error) {
+                console.error('Error fetching data with OpenSheet:', error);
+                // 顯示更明確的錯誤訊息
+                alert(`資料載入失敗。請確認試算表已設為「知道連結的人皆可檢視」及分頁名稱「存歌」是否正確。\n錯誤: ${error.message}`);
+            } finally {
+                // 隱藏載入狀態
+                refreshBtn.disabled = false;
+                refreshBtnText.textContent = '重新整理';
+                loadingSpinner.classList.add('hidden');
+            }
+        }
+
+
+// 處理 OpenSheet 回傳的存歌資料 (取代 processMainData)
+        function processOpenSheetRecords(data) {
+            allRecords = [];
+            
+            data.forEach((row, index) => {
+                // 使用標題列名稱：'名字' 和 '存歌'
+                const name = row['名字'] || ''; 
+                let songCount = row['存歌'] || 0;
+                
+                if (name && songCount !== null) {
+                    let displaySongCount = songCount;
+                    let numericSongCount = parseFloat(songCount);
+                    
+                    if (songCount === 10000 || (typeof songCount === 'string' && songCount.includes('（無限）'))) {
+                        displaySongCount = '∞';
+                        numericSongCount = Infinity;
+                    } else if (isNaN(numericSongCount)) {
+                        numericSongCount = 0;
+                    }
+                    
+                    allRecords.push({
+                        name: name,
+                        songCount: displaySongCount,
+                        originalSongCount: songCount,
+                        numericSongCount: numericSongCount,
+                        index: index 
+                    });
+                }
+            });
+            
+            // 排序記錄
+            allRecords.sort((a, b) => {
+                if (b.numericSongCount !== a.numericSongCount) {
+                    return b.numericSongCount - a.numericSongCount;
+                }
+                return a.index - b.index;
+            });
+        }
+
+       
+// 處理 OpenSheet 回傳的冠歌人顏色 (取代 extractPersonColorsDirectly)
+        function processOpenSheetColors(data) {
+            personColors = {}; 
+            data.forEach(row => {
+                // 原來的 H 欄 (7) -> row['冠歌人']
+                // 原來的 K 欄 (10) -> row['顏色']
+                const person = row['冠歌人'] || '';
+                const color = row['顏色'] || '';
+                
+                if (person && color && !personColors[person]) {
+                    if (color.startsWith('#')) {
+                        personColors[person] = getColorStylesFromHex(color);
+                    } else {
+                        personColors[person] = getColorStyles(color);
+                    }
+                }
+            });
+        }
+
+        // 處理 OpenSheet 回傳的冠歌資料 (取代 processTopSongsData)
+        function processOpenSheetTopSongs(data) {
+            topSongs = [];
+            
+            data.forEach(row => {
+                // 原來的 H 欄 (7) -> row['冠歌人']
+                // 原來的 I 欄 (8) -> row['冠歌歌曲']
+                // 原來的 J 欄 (9) -> row['倍數']
+                const person = row['冠歌人'] || '';
+                const song = row['冠歌歌曲'] || '';
+                const multiplier = row['倍數'] || '';
+                
+                if (person && song && multiplier) {
+                    topSongs.push({
+                        person: person,
+                        song: song,
+                        multiplier: multiplier
+                    });
+                }
+            });
+            
+                  assignDefaultColorsToPersons();
+        }
+
+
+       
+ 
+
+        // Convert color name to CSS styles
+        function getColorStyles(colorName) {
+            // Map of color names to CSS classes
+            const colorMap = {
+                '粉紅': { primary: 'bg-pastel-pink', text: 'text-pink-700', border: 'border-pink-200', isDark: false },
+                '紫色': { primary: 'bg-pastel-purple', text: 'text-purple-700', border: 'border-purple-200', isDark: false },
+                '藍色': { primary: 'bg-pastel-blue', text: 'text-blue-700', border: 'border-blue-200', isDark: false },
+                '薰衣草': { primary: 'bg-pastel-lavender', text: 'text-purple-800', border: 'border-purple-200', isDark: false },
+                '薄荷': { primary: 'bg-pastel-mint', text: 'text-green-700', border: 'border-green-200', isDark: false },
+                '桃色': { primary: 'bg-pastel-peach', text: 'text-orange-700', border: 'border-orange-200', isDark: false },
+                '黃色': { primary: 'bg-pastel-yellow', text: 'text-yellow-700', border: 'border-yellow-200', isDark: false },
+                '珊瑚': { primary: 'bg-pastel-coral', text: 'text-red-700', border: 'border-red-200', isDark: false },
+                '丁香': { primary: 'bg-pastel-lilac', text: 'text-purple-700', border: 'border-purple-200', isDark: false },
+                '綠色': { primary: 'bg-pastel-green', text: 'text-green-700', border: 'border-green-200', isDark: false },
+                '深藍': { primary: 'bg-blue-700', text: 'text-white', border: 'border-blue-800', isDark: true },
+                '深紫': { primary: 'bg-purple-700', text: 'text-white', border: 'border-purple-800', isDark: true },
+                '深綠': { primary: 'bg-green-700', text: 'text-white', border: 'border-green-800', isDark: true },
+                '深紅': { primary: 'bg-red-700', text: 'text-white', border: 'border-red-800', isDark: true },
+                '黑色': { primary: 'bg-gray-800', text: 'text-white', border: 'border-gray-900', isDark: true },
+                '藍紫': { primary: 'bg-bluepurple-600', text: 'text-white', border: 'border-bluepurple-700', isDark: true }
+            };
+            
+            // Return the color styles or default to bluepurple if not found
+            return colorMap[colorName] || { primary: 'bg-pastel-bluepurple', text: 'text-bluepurple-700', border: 'border-bluepurple-200', isDark: false };
+        }
+
+        // Convert hex color to CSS styles
+        function getColorStylesFromHex(hexColor) {
+            // Determine if the color is dark (for text contrast)
+            const isDark = isColorDark(hexColor);
+            
+            // Create inline styles using the hex color
+            return {
+                primary: `bg-[${hexColor}]`,
+                text: isDark ? 'text-white' : 'text-gray-800',
+                border: `border-[${hexColor}]`,
+                hex: hexColor,
+                isDark: isDark
+            };
+        }
+
+        // Check if a color is dark (to determine text color)
+        function isColorDark(hexColor) {
+            // Remove the # if present
+            hexColor = hexColor.replace('#', '');
+            
+            // Parse the hex color
+            const r = parseInt(hexColor.substr(0, 2), 16);
+            const g = parseInt(hexColor.substr(2, 2), 16);
+            const b = parseInt(hexColor.substr(4, 2), 16);
+            
+            // Calculate the brightness
+            const brightness = (r * 299 + g * 587 + b * 114) / 1000;
+            
+            // Return true if the color is dark
+            return brightness < 128;
+        }
+
+
+// NEW FUNCTION: Calculate the required minimum card width for the longest song name
+function calculateMaxSongNameWidth() {
+    let maxWidth = 0;
+    
+    // 創建一個臨時元素來計算寬度。樣式必須與歌名 span (text-xs, font-medium) 精確匹配。
+    const tempSpan = document.createElement('span');
+    tempSpan.style.visibility = 'hidden';
+    tempSpan.style.position = 'absolute';
+    tempSpan.style.whiteSpace = 'nowrap';
+    tempSpan.style.fontSize = '0.75rem'; // text-xs in Tailwind is 0.75rem
+    tempSpan.style.fontFamily = 'Noto Sans TC, Noto Sans SC, sans-serif'; // 確保字體一致
+    tempSpan.style.fontWeight = '500'; // font-medium
+    document.body.appendChild(tempSpan);
+
+    topSongs.forEach(song => {
+        tempSpan.textContent = song.song;
+        maxWidth = Math.max(maxWidth, tempSpan.offsetWidth);
+    });
+
+    document.body.removeChild(tempSpan);
+    
+    // 總卡片內容所需寬度計算：
+    // 1. 最長歌名寬度: maxWidth
+    // 2. 倍數標籤與間距 (約 50px)
+    const requiredContentWidth = maxWidth + 50; 
+    
+    // 設定 CSS 變數。取所需寬度與預設最小 250px 之間的較大值，以防歌名太短。
+    // 這個值將決定 Grid 欄位的最小寬度。
+    document.documentElement.style.setProperty('--min-card-content-width', `${Math.max(requiredContentWidth, 250)}px`); 
+}
+
+
+
+        // Assign default colors to persons without specified colors
+        function assignDefaultColorsToPersons() {
+
+            const defaultColors = [
+                '#d1d8ff', // Blue-purple
+                '#d1e8ff', // Blue
+                '#e8d1ff', // Purple
+                '#e0d1ff', // Lavender
+                '#d1fff0', // Mint
+                '#ffe8d1', // Peach
+                '#fff8d1', // Yellow
+                '#ffded1', // Coral
+                '#f0d1ff', // Lilac
+                '#d1ffdd'  // Green
+            ];
+            
+            let colorIndex = 0;
+            const uniquePersons = [...new Set(topSongs.map(song => song.person))];
+            
+            uniquePersons.forEach(person => {
+                if (!personColors[person]) {
+                    const hexColor = defaultColors[colorIndex % defaultColors.length];
+                    personColors[person] = getColorStylesFromHex(hexColor);
+                    colorIndex++;
+                }
+            });
+        }
+
+
+
+
+        // Update the UI with the fetched data
+        function updateUI() {
+            renderTopSongs();
+            renderRecordTable();
+        }
+
+        // Render the top songs section with new design
+        function renderTopSongs() {
+            // Render for desktop
+            const desktopContainer = document.getElementById('topSongsContainer');
+            renderTopSongsContent(desktopContainer);
+            
+            // Render for mobile
+            const mobileContainer = document.getElementById('topSongsMobileContent');
+            renderTopSongsContent(mobileContainer);
+        }
+        
+        // Render top songs content to a container
+        function renderTopSongsContent(container) {
+            container.innerHTML = '';
+            
+            if (topSongs.length === 0) {
+                container.innerHTML = '<p class="text-center text-bluepurple-500">沒有冠歌資料</p>';
+                return;
+            }
+            
+            // Group songs by person
+            const songsByPerson = {};
+            topSongs.forEach(song => {
+                if (!songsByPerson[song.person]) {
+                    songsByPerson[song.person] = [];
+                }
+                songsByPerson[song.person].push(song);
+            });
+            
+            // Sort persons by number of songs (most songs first)
+            const sortedPersons = Object.keys(songsByPerson).sort((a, b) => 
+                songsByPerson[b].length - songsByPerson[a].length
+            );
+            
+            // Create a container for all person cards
+            const personsContainer = document.createElement('div');
+            personsContainer.className = 'grid gap-3';
+            personsContainer.style.gridTemplateColumns = 'repeat(auto-fit, minmax(var(--min-card-content-width, 250px), 1fr))';
+
+            
+            // Display each person as a card
+            sortedPersons.forEach(person => {
+                const personSongs = songsByPerson[person];
+                const personColor = personColors[person] || { primary: 'bg-pastel-bluepurple', text: 'text-gray-800', border: 'border-bluepurple-200', isDark: false };
+                
+                // Create a card for this person
+                const personCard = document.createElement('div');
+                personCard.className = 'bg-bluepurple-50 rounded-custom shadow-sm overflow-hidden border border-bluepurple-100 relative crown-card'; 
+                
+                // Determine text color based on background darkness
+                const textColorClass = personColor.isDark ? 'text-white' : 'text-gray-800';
+                
+                // Add person header with crown icon
+                let headerBgClass = '';
+                if (personColor.hex) {
+                    headerBgClass = `style="background-color: ${personColor.hex};"`;
+                } else {
+                    headerBgClass = `class="${personColor.primary}"`;
+                }
+                
+                personCard.innerHTML = `
+                    <div ${headerBgClass} class="p-2 relative">
+                        <div class="flex items-center">
+                            <!-- Crown icon -->
+                            <svg class="w-5 h-5 mr-1 text-yellow-500" fill="currentColor" viewBox="0 0 20 20" xmlns="http://www.w3.org/2000/svg">
+                                <path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z"></path>
+                            </svg>
+                            <h3 class="font-bold text-sm ${textColorClass}">${person}</h3>
+                        </div>
+                    </div>
+                    <div class="card-content">
+                        <ul class="songs-list p-2 space-y-1">
+                            ${personSongs.map(song => {
+                                // Determine background style for song list item, increased opacity
+                                let songItemBgStyle = '';
+                                let songItemBgClass = '';
+                                if (personColor.hex) {
+                                    songItemBgStyle = `background-color: ${personColor.hex}33;`; // 20% opacity
+                                } else {
+                                    songItemBgClass = `${personColor.primary.replace('bg-', 'bg-opacity-20 bg-')}`; // 20% opacity
+                                }
+
+                                return `
+                                <li style="${songItemBgStyle}" class="flex items-center justify-between p-1.5 rounded-custom-sm shadow-sm border ${personColor.border} ${songItemBgClass}">
+                                    <span class="font-medium text-gray-800 truncate mr-2 text-xs">${song.song}</span>
+                                    <span class="flex items-center text-gray-800 text-xs font-bold">
+                                        <!-- Crown icon -->
+                                        <svg class="w-4 h-4 text-yellow-500" fill="currentColor" viewBox="0 0 20 20" xmlns="http://www.w3.org/2000/svg">
+                                            <path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z"></path>
+                                        </svg>
+                                        <span class="ml-0.5">${song.multiplier}倍</span>
+                                    </span>
+                                </li>`;
+                            }).join('')}
+                        </ul>
+                    </div>
+                `;
+                
+                personsContainer.appendChild(personCard);
+            });
+            
+            container.appendChild(personsContainer);
+            
+            // Make all cards the same height on desktop
+            if (window.innerWidth >= 768) { // md breakpoint
+                // 使用 requestAnimationFrame 確保在瀏覽器重繪前執行，提高高度計算的準確性
+                requestAnimationFrame(() => {
+                    requestAnimationFrame(() => { // 雙層 rAF 更為穩健
+                        equalizeCardHeights();
+                    });
+                });
+            }
+        }
+
+// Make all crown cards the same height based on the maximum height in each row
+function equalizeCardHeights() {
+    // 選擇所有的卡片
+    const cards = document.querySelectorAll('.crown-card');
+    if (cards.length === 0) return;
+    
+    // 1. 重設所有卡片高度，讓瀏覽器重新計算
+    cards.forEach(card => {
+        card.style.height = 'auto';
+    });
+    
+    // 2. 根據 offsetTop 分組並計算最大高度
+    let currentTop = -1; // 用來追蹤當前行的頂部位置
+    let rowCards = [];   // 儲存當前行的所有卡片
+    let maxRowHeight = 0; // 儲存當前行的最大高度
+
+    cards.forEach((card, index) => {
+        // 取得卡片相對於 offsetParent 的頂部位置
+        const cardTop = card.offsetTop;
+
+        // 判斷是否為新的一行：
+        // (1) 這是第一張卡片
+        // (2) 卡片的頂部位置與前一張卡片明顯不同（使用 > 1 避免 sub-pixel 渲染誤差）
+        if (index === 0 || Math.abs(cardTop - currentTop) > 1) {
+            
+            // 處理並應用上一行的高度 (如果存在)
+            if (rowCards.length > 0) {
+                rowCards.forEach(c => c.style.height = `${maxRowHeight}px`);
+            }
+
+            // 開始新的一行
+            currentTop = cardTop;
+            rowCards = [card]; // 將當前卡片設為新行的第一張
+            maxRowHeight = card.offsetHeight; // 設為新行的初始最大高度
+        } else {
+            // 卡片在同一行
+            rowCards.push(card);
+            maxRowHeight = Math.max(maxRowHeight, card.offsetHeight); // 更新行最大高度
+        }
+    });
+
+    // 處理最後一行的高度
+    if (rowCards.length > 0) {
+        rowCards.forEach(c => c.style.height = `${maxRowHeight}px`);
+    }
+}
+        
+        // Reset card heights to auto
+        function resetCardHeights() {
+            const cards = document.querySelectorAll('.crown-card');
+            cards.forEach(card => {
+                card.style.height = 'auto';
+            });
+        }
+
+        // Render the record table
+        function renderRecordTable() {
+            // Render top 10 records in the table
+            const top10RecordsTableBody = document.getElementById('top10RecordsTableBody');
+            top10RecordsTableBody.innerHTML = '';
+            
+            if (allRecords.length === 0) {
+                const emptyRow = document.createElement('tr');
+                emptyRow.innerHTML = `
+                    <td colspan="3" class="px-4 py-2 text-center text-bluepurple-500">
+                        沒有找到資料
+                    </td>
+                `;
+                top10RecordsTableBody.appendChild(emptyRow);
+            } else {
+                // Get top 10 records (or all if less than 10)
+                const top10Records = allRecords.slice(0, 10);
+                
+                // Render top 10 records
+                top10Records.forEach((record, index) => {
+                    const row = document.createElement('tr');
+                    row.className = 'record-row hover:bg-bluepurple-50';
+                    
+                    // Determine rank style based on position
+                    let rankStyle = '';
+                    if (index === 0) {
+                        rankStyle = 'bg-yellow-100 text-yellow-800 font-bold';
+                    } else if (index === 1) {
+                        rankStyle = 'bg-gray-100 text-gray-700 font-bold';
+                    } else if (index === 2) {
+                        rankStyle = 'bg-amber-50 text-amber-700 font-bold';
+                    } else {
+                        // Adjusted default rank badge color for better appearance
+                        rankStyle = 'bg-bluepurple-100 text-bluepurple-700'; 
+                    }
+                    
+                    row.innerHTML = `
+                        <td class="px-4 py-2 whitespace-nowrap">
+                            <div class="inline-block rounded-full w-6 h-6 flex items-center justify-center ${rankStyle} text-xs">
+                                ${index + 1}
+                            </div>
+                        </td>
+                        <td class="px-4 py-2 whitespace-nowrap">
+                            <div class="${index < 3 ? 'font-medium' : ''} text-bluepurple-900 text-sm">${record.name}</div>
+                        </td>
+                        <td class="px-4 py-2 whitespace-nowrap">
+                            <div class="text-bluepurple-700 text-sm">${record.songCount}</div>
+                        </td>
+                    `;
+                    top10RecordsTableBody.appendChild(row);
+                });
+            }
+            
+            // Render remaining records in compact grid
+            const remainingRecordsContainer = document.getElementById('remainingRecordsContainer');
+            remainingRecordsContainer.innerHTML = '';
+            
+            if (allRecords.length <= 10) {
+                remainingRecordsContainer.innerHTML = '<p class="text-center text-bluepurple-500 col-span-full">沒有更多資料</p>';
+            } else {
+                // Get records beyond top 10
+                const remainingRecords = allRecords.slice(10);
+                
+                // Render remaining records in compact grid
+                remainingRecords.forEach((record) => {
+                    const recordCard = document.createElement('div');
+                    recordCard.className = 'bg-bluepurple-100 rounded-custom-sm border border-bluepurple-100 compact-card hover:bg-bluepurple-50 transition-colors text-center';
+                    
+                    recordCard.innerHTML = `
+                        <div class="compact-name text-bluepurple-800">${record.name}</div>
+                        <div class="compact-count bg-bluepurple-50 text-bluepurple-700">${record.songCount}</div>
+                    `;
+                    
+                    remainingRecordsContainer.appendChild(recordCard);
+                });
+            }
+        }
+
+        // Handle search input
+        function handleSearch(e) {
+            const searchTerm = e.target.value.toLowerCase().trim();
+            
+            // Store the original allRecords before filtering
+            const originalRecords = [...allRecords];
+
+            if (searchTerm === '') {
+                // If search term is empty, reset to original data
+                allRecords = originalRecords; // Ensure allRecords is the full, original list
+                updateUI();
+                return;
+            }
+            
+            // Filter records based on search term
+            const filteredRecords = originalRecords.filter(record => // Filter from the original list
+                record.name.toLowerCase().includes(searchTerm)
+            );
+            
+            // Temporarily set allRecords to filtered results for rendering
+            allRecords = filteredRecords;
+            
+            // Update UI with filtered results. The ranks displayed will be based on this filtered set.
+            updateUI();
+            
+            // Restore original data immediately after rendering, so subsequent operations
+            // (like another search or refresh) work on the full dataset.
+            allRecords = originalRecords;
+        }
+    </script>
+</body>
+</html>
