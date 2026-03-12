@@ -1,4 +1,5 @@
 
+
 <!DOCTYPE html>
 <html lang="zh-TW">
 <head>
@@ -372,13 +373,11 @@ function handleResize() {
                 refreshBtnText.textContent = '載入中...';
                 loadingSpinner.classList.remove('hidden');
                 
-                // --- 使用 OpenSheet 方式 ---
-                const spreadsheetId = '1z-kl4dUioRrhJaq82O283991VPtg2PfXqx4eN5fQ9-8';
-                // 使用您提供的分頁名稱
-                const sheetName = '存歌'; 
-                
-                // OpenSheet URL 格式：https://opensheet.vip/SpreadsheetId/SheetName
-                const dataUrl = `https://opensheet.elk.sh/${spreadsheetId}/${sheetName}`;
+                // const spreadsheetId = '1z-kl4dUio521656456Ptg2Pf5fQ9-8';
+                // const sheetName = '存歌'; 
+               // https://opensheet.vip/SpreadsheetId/SheetName
+                // const dataUrl = `https://opensheet.elk.sh/${spreadsheetId}/${sheetName}`;
+              const dataUrl = `https://script.google.com/macros/s/AKfycbxKwLZdmBp4l6Nsaq84lu1F1pOjrIDHggpEE2JLvsoacXSxVTpQlq8gjatQJ6ltn3PDsw/exec?sheet=存歌`;
                 
                 console.log("Fetching data from OpenSheet URL:", dataUrl);
 
