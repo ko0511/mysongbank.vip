@@ -1,5 +1,6 @@
 
 
+
 <!DOCTYPE html>
 <html lang="zh-TW">
 <head>
@@ -366,53 +367,68 @@ function handleResize() {
 
         // Fetch data from Google Sheets (gviz/tq endpoint)
         // Fetch data using OpenSheet
+        // 將 CSV 文字轉換為 JSON 陣列的輔助函數
+        function csvToJson(csvText) {
+            const lines = csvText.split(/\r?\n/).filter(line => line.trim() !== '');
+            if (lines.length === 0) return [];
+            
+            // 處理 CSV 的單行（支援欄位內有逗號被雙引號包圍的情況）
+            const parseRow = (row) => {
+                const regex = /,(?=(?:(?:[^"]*"){2})*[^"]*$)/;
+                return row.split(regex).map(field => field.replace(/^"|"$/g, '').trim());
+            };
+
+            const headers = parseRow(lines[0]);
+            const result = [];
+            
+            for (let i = 1; i < lines.length; i++) {
+                const currentline = parseRow(lines[i]);
+                const obj = {};
+                for (let j = 0; j < headers.length; j++) {
+                    obj[headers[j]] = currentline[j] !== undefined ? currentline[j] : '';
+                }
+                result.push(obj);
+            }
+            return result;
+        }
+
+        // 修改後的 fetchData 函數
         async function fetchData() {
             try {
-                // 顯示載入狀態
+                // 1. 每次進來都強制顯示載入中，不使用快取
                 refreshBtn.disabled = true;
                 refreshBtnText.textContent = '載入中...';
                 loadingSpinner.classList.remove('hidden');
                 
-                // const spreadsheetId = '1z-kl4dUio521656456Ptg2Pf5fQ9-8';
-                // const sheetName = '存歌'; 
-               // https://opensheet.vip/SpreadsheetId/SheetName
-                // const dataUrl = `https://opensheet.elk.sh/${spreadsheetId}/${sheetName}`;
-              const dataUrl = `https://script.google.com/macros/s/AKfycbxKwLZdmBp4l6Nsaq84lu1F1pOjrIDHggpEE2JLvsoacXSxVTpQlq8gjatQJ6ltn3PDsw/exec?sheet=存歌`;
+                // 你的 Google Sheets CSV 網址
+                const baseUrl = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vTrhKJ_wXiUYQv72t8JuOQtVDNitAYsPh1vXOkbtKRK1g10EGdbflk8HKGb121kH9pW5Kp0ObAYe07f/pub?gid=450646292&single=true&output=csv'; 
                 
-                console.log("Fetching data from OpenSheet URL:", dataUrl);
-
-                // OpenSheet 只需要試算表公開分享即可
-                const response = await fetch(dataUrl);
+                // 2. 加上時間戳記 (?t=123456...)，強迫瀏覽器每次都抓取最新檔案，絕不拿舊的
+                const dataUrl = baseUrl + "&t=" + new Date().getTime();
+                
+                const response = await fetch(dataUrl, { mode: 'cors' });
 
                 if (!response.ok) {
-                    throw new Error(`OpenSheet HTTP 錯誤! 狀態: ${response.status}`);
+                    throw new Error(`讀取失敗，狀態碼: ${response.status}`);
                 }
                 
-                // OpenSheet 直接回傳 JSON 陣列
-                const rawData = await response.json();
+                const csvText = await response.text();
+                const rawData = csvToJson(csvText);
                 
-                // 檢查 OpenSheet 是否返回資料
-                if (!rawData || rawData.length === 0 || rawData[0].error) {
-                    throw new Error('OpenSheet 未返回任何資料。請檢查試算表是否已公開分享，且分頁名稱是否正確。');
+                if (!rawData || rawData.length === 0) {
+                    throw new Error('CSV 內沒有資料');
                 }
                 
-                // 1. 處理顏色與冠歌資料 (OpenSheet 格式)
+                // 3. 處理並渲染最新資料
                 processOpenSheetColors(rawData);
                 processOpenSheetTopSongs(rawData);
                 calculateMaxSongNameWidth();
-                
-                // 2. 處理存歌資料 (OpenSheet 格式)
                 processOpenSheetRecords(rawData);
-                
-                // 更新 UI
                 updateUI();
                 
-                // 處理卡片高度
-                handleResize();
             } catch (error) {
-                console.error('Error fetching data with OpenSheet:', error);
-                // 顯示更明確的錯誤訊息
-                alert(`資料載入失敗。請確認試算表已設為「知道連結的人皆可檢視」及分頁名稱「存歌」是否正確。\n錯誤: ${error.message}`);
+                console.error('Error:', error);
+                alert(`讀取失敗！請確認網路連線。\n錯誤訊息: ${error.message}`);
             } finally {
                 // 隱藏載入狀態
                 refreshBtn.disabled = false;
@@ -694,7 +710,7 @@ function renderTopSongs() {
                 
                 // Create a card for this person
                 const personCard = document.createElement('div');
-                personCard.className = 'bg-bluepurple-50 rounded-custom shadow-sm overflow-hidden border border-bluepurple-100 relative crown-card'; 
+personCard.className = 'bg-bluepurple-50 rounded-custom shadow-sm overflow-hidden border border-bluepurple-100 relative crown-card h-full flex flex-col'; 
                 
                 // Determine text color based on background darkness
                 const textColorClass = personColor.isDark ? 'text-white' : 'text-gray-800';
@@ -761,58 +777,13 @@ function renderTopSongs() {
 
 // Make all crown cards the same height based on the maximum height in each row
 function equalizeCardHeights() {
-    // 選擇所有的卡片
-    const cards = document.querySelectorAll('.crown-card');
-    if (cards.length === 0) return;
-    
-    // 1. 重設所有卡片高度，讓瀏覽器重新計算
-    cards.forEach(card => {
-        card.style.height = 'auto';
-    });
-    
-    // 2. 根據 offsetTop 分組並計算最大高度
-    let currentTop = -1; // 用來追蹤當前行的頂部位置
-    let rowCards = [];   // 儲存當前行的所有卡片
-    let maxRowHeight = 0; // 儲存當前行的最大高度
-
-    cards.forEach((card, index) => {
-        // 取得卡片相對於 offsetParent 的頂部位置
-        const cardTop = card.offsetTop;
-
-        // 判斷是否為新的一行：
-        // (1) 這是第一張卡片
-        // (2) 卡片的頂部位置與前一張卡片明顯不同（使用 > 1 避免 sub-pixel 渲染誤差）
-        if (index === 0 || Math.abs(cardTop - currentTop) > 1) {
-            
-            // 處理並應用上一行的高度 (如果存在)
-            if (rowCards.length > 0) {
-                rowCards.forEach(c => c.style.height = `${maxRowHeight}px`);
-            }
-
-            // 開始新的一行
-            currentTop = cardTop;
-            rowCards = [card]; // 將當前卡片設為新行的第一張
-            maxRowHeight = card.offsetHeight; // 設為新行的初始最大高度
-        } else {
-            // 卡片在同一行
-            rowCards.push(card);
-            maxRowHeight = Math.max(maxRowHeight, card.offsetHeight); // 更新行最大高度
-        }
-    });
-
-    // 處理最後一行的高度
-    if (rowCards.length > 0) {
-        rowCards.forEach(c => c.style.height = `${maxRowHeight}px`);
-    }
+    // 已廢棄：改由 CSS 原生處理，大幅提升渲染效能
 }
         
-        // Reset card heights to auto
-        function resetCardHeights() {
-            const cards = document.querySelectorAll('.crown-card');
-            cards.forEach(card => {
-                card.style.height = 'auto';
-            });
-        }
+// Reset card heights to auto
+function resetCardHeights() {
+    // 已廢棄
+}
 
         // Render the record table
         function renderRecordTable() {
