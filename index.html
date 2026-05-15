@@ -370,28 +370,31 @@ function handleResize() {
         // Fetch data using OpenSheet
         // 將 CSV 文字轉換為 JSON 陣列的輔助函數
         function csvToJson(csvText) {
-            const lines = csvText.split(/\r?\n/).filter(line => line.trim() !== '');
-            if (lines.length === 0) return [];
-            
-            // 處理 CSV 的單行（支援欄位內有逗號被雙引號包圍的情況）
-            const parseRow = (row) => {
-                const regex = /,(?=(?:(?:[^"]*"){2})*[^"]*$)/;
-                return row.split(regex).map(field => field.replace(/^"|"$/g, '').trim());
-            };
-
-            const headers = parseRow(lines[0]);
-            const result = [];
-            
-            for (let i = 1; i < lines.length; i++) {
-                const currentline = parseRow(lines[i]);
-                const obj = {};
-                for (let j = 0; j < headers.length; j++) {
-                    obj[headers[j]] = currentline[j] !== undefined ? currentline[j] : '';
-                }
-                result.push(obj);
-            }
-            return result;
+    const rows = [];
+    let row = [], field = "", inQ = false;
+    for (let i = 0; i < csvText.length; i++) {
+        const c = csvText[i];
+        if (inQ) {
+            if (c === '"' && csvText[i+1] === '"') { field += '"'; i++; }
+            else if (c === '"') inQ = false;
+            else field += c;
+        } else {
+            if (c === '"') inQ = true;
+            else if (c === ',') { row.push(field); field = ""; }
+            else if (c === '\n') { row.push(field); rows.push(row); row = []; field = ""; }
+            else if (c !== '\r') field += c;
         }
+    }
+    if (field || row.length) { row.push(field); rows.push(row); }
+
+    if (rows.length === 0) return [];
+    const headers = rows[0].map(h => h.trim());
+    return rows.slice(1).map(row => {
+        const obj = {};
+        headers.forEach((h, i) => { obj[h] = (row[i] || "").trim(); });
+        return obj;
+    });
+}
 
         // 修改後的 fetchData 函數
         async function fetchData() {
@@ -407,7 +410,7 @@ function handleResize() {
                 // 2. 加上時間戳記 (?t=123456...)，強迫瀏覽器每次都抓取最新檔案，絕不拿舊的
                 const dataUrl = baseUrl + "&t=" + new Date().getTime();
                 
-                const response = await fetch(dataUrl, { mode: 'cors' });
+                const response = await fetch(dataUrl);
 
                 if (!response.ok) {
                     throw new Error(`讀取失敗，狀態碼: ${response.status}`);
