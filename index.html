@@ -1,6 +1,7 @@
 
 
 
+
 <!DOCTYPE html>
 <html lang="zh-TW">
 <head>
@@ -439,36 +440,42 @@ function handleResize() {
 
 
 // 處理 OpenSheet 回傳的存歌資料 (取代 processMainData)
+        // 處理 OpenSheet 回傳的存歌資料 (包含卡存加總)
         function processOpenSheetRecords(data) {
             allRecords = [];
             
             data.forEach((row, index) => {
-                // 使用標題列名稱：'名字' 和 '存歌'
                 const name = row['名字'] || ''; 
                 let songCount = row['存歌'] || 0;
+                let cardCount = row['卡存'] || 0; // 新增：抓取卡存欄位
                 
-                if (name && songCount !== null) {
-                    let displaySongCount = songCount;
-                    let numericSongCount = parseFloat(songCount);
+                if (name) {
+                    // 轉為數字處理
+                    let sNum = (songCount === '10000' || (typeof songCount === 'string' && songCount.includes('∞'))) ? Infinity : parseFloat(songCount) || 0;
+                    let cNum = parseFloat(cardCount) || 0;
                     
-                    if (songCount === 10000 || (typeof songCount === 'string' && songCount.includes('（無限）'))) {
-                        displaySongCount = '∞';
-                        numericSongCount = Infinity;
-                    } else if (isNaN(numericSongCount)) {
-                        numericSongCount = 0;
+                    // 計算總和用於排序
+                    let totalNum = sNum + cNum;
+                    
+                    // 決定顯示文字
+                    let displayText = '';
+                    if (sNum === Infinity) {
+                        displayText = '∞';
+                    } else {
+                        // 如果有卡存，顯示為 "一般+卡存"，沒有則只顯示一般
+                        displayText = cNum > 0 ? `${sNum} <span class="text-xxs text-rose-400">(+${cNum}卡)</span>` : `${sNum}`;
                     }
                     
                     allRecords.push({
                         name: name,
-                        songCount: displaySongCount,
-                        originalSongCount: songCount,
-                        numericSongCount: numericSongCount,
+                        songCount: displayText,
+                        numericSongCount: totalNum, // 使用總和排序
                         index: index 
                     });
                 }
             });
             
-            // 排序記錄
+            // 排序記錄 (依照總和)
             allRecords.sort((a, b) => {
                 if (b.numericSongCount !== a.numericSongCount) {
                     return b.numericSongCount - a.numericSongCount;
